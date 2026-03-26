@@ -7,6 +7,7 @@ import Landing from './pages/Landing';
 import About from './pages/About';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import LostFound from './pages/LostFound';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile/:username" element={<Profile />} />
+                <Route path="/lost-found" element={<LostFound />} />
               </Routes>
             </main>
           </div>

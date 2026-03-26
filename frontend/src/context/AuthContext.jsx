@@ -2,17 +2,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('petconnect_user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
   // Check token on mount in a real app
   useEffect(() => {
-    const storedUser = localStorage.getItem('petconnect_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
   }, []);
 
   const login = (userData) => {

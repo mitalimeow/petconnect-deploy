@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { MapPin, Edit2, Phone, Mail } from 'lucide-react';
 import TagBadge from '../components/profile/TagBadge';
 import PostCard from '../components/profile/PostCard';
@@ -12,7 +12,6 @@ const DEFAULT_AVATAR = "https://upload.wikimedia.org/wikipedia/commons/7/7c/Prof
 const Profile = () => {
   const { username } = useParams();
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
