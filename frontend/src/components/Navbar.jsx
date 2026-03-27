@@ -14,6 +14,7 @@ const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const googleLogin = useGoogleLogin({
+    flow: 'implicit',
     onSuccess: async (tokenResponse) => {
       try {
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -32,10 +33,16 @@ const Navbar = () => {
            login({ ...data.user, token: data.token, avatar: userInfo.picture });
         } else {
            console.error("Backend login sync failed");
+           alert("Login failed: The backend server rejected the login.");
         }
       } catch (err) {
         console.error('Login failed', err);
+        alert("Login failed: Could not connect to the backend server. Is your backend running on port 5000?");
       }
+    },
+    onError: (error) => {
+      console.error("Google Login failed:", error);
+      alert("Google Login failed: " + (error.error || "Unknown error"));
     }
   });
 
@@ -64,6 +71,7 @@ const Navbar = () => {
 
       {/* Right Area */}
       <nav className="flex items-center gap-6 font-medium">
+        <Link to="/education" className="hover:text-pastel-pink transition-colors hidden sm:block text-gray-700">Education</Link>
         <Link to="/about" className="hover:text-pastel-pink transition-colors hidden sm:block">About Us</Link>
         
         {!user ? (
