@@ -15,7 +15,7 @@ const ProfileMenu = ({ onClose }) => {
       
       <div className="p-2">
         <Link 
-          to="/profile/me" 
+          to={`/profile/${user?.id}`}  
           onClick={onClose}
           className="flex items-center gap-3 w-full px-3 py-2 text-left text-foreground hover:bg-pastel-blue/20 rounded-xl transition-colors"
         >

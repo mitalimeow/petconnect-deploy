@@ -136,26 +136,22 @@ const FiltersPanel = ({ isOpen, onClose, initialFilters, onApply }) => {
                 )}
 
                 {activeCategory === 'location' && (
-                  <div className="space-y-4">
-                     <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input 
-                           type="text" 
-                           placeholder="Search cities..." 
-                           value={locSearch}
-                           onChange={e => setLocSearch(e.target.value)}
-                           className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-pastel-blue bg-gray-50 focus:bg-white transition-colors"
-                        />
-                     </div>
-                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                        {DATA_MAP.location.filter(loc => loc.toLowerCase().includes(locSearch.toLowerCase())).map(loc => {
-                          const isActive = filters.location === loc;
-                          return (
-                            <button key={loc} onClick={() => setFilters({...filters, location: isActive ? '' : loc})} className={`px-3 py-2 rounded-lg text-sm font-bold text-left transition-colors ${isActive ? 'bg-pastel-blue text-white shadow-md' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>
-                               {loc}
-                            </button>
-                          )
-                        })}
+                  <div className="pt-2">
+                     <p className="text-gray-500 font-medium mb-4">Select a specific city to find pets.</p>
+                     <div className="relative border-2 border-gray-200 rounded-2xl overflow-hidden bg-gray-50 hover:border-pastel-blue transition-colors focus-within:border-pastel-blue">
+                       <select 
+                         value={filters.location}
+                         onChange={(e) => setFilters({...filters, location: e.target.value})}
+                         className="w-full p-4 bg-transparent outline-none cursor-pointer appearance-none font-bold text-gray-700"
+                       >
+                         <option value="">Any Location</option>
+                         {[...DATA_MAP.location].sort().map(loc => (
+                           <option key={loc} value={loc}>{loc}</option>
+                         ))}
+                       </select>
+                       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-sm">
+                         ▼
+                       </div>
                      </div>
                   </div>
                 )}

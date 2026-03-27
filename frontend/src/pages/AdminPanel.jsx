@@ -7,7 +7,9 @@ const AdminPanel = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  if (!user?.tags?.includes('Admin')) {
+  const isAdmin = user?.tags?.some(tag => tag?.name === 'Admin' || tag === 'Admin') || user?.email === 'mitalipaullol268@gmail.com';
+  
+  if (!isAdmin) {
     return <Navigate to="/" replace />;
   }
 

@@ -48,19 +48,21 @@ router.post('/google', async (req, res) => {
           suffix++;
         }
         
-        let initialTags = ['Community Member'];
-        if (isAdmin) initialTags.push('Admin');
+        let initialTags = [{ name: 'Community Member', color: '#B5D2CB' }];
+        if (isAdmin) initialTags.push({ name: 'Admin', color: '#DBB3B1' });
 
         user = new User({
           username,
           name: payload['name'],
           email: payload['email'],
           profilePhoto: payload['picture'] || '',
-          tags: initialTags
+          tags: initialTags,
+          role: isAdmin ? 'admin' : 'user'
         });
         await user.save();
-      } else if (isAdmin && !user.tags.includes('Admin')) {
-        user.tags.push('Admin');
+      } else if (isAdmin && (!user.tags.some(t => t.name === 'Admin') || user.role !== 'admin')) {
+        if (!user.tags.some(t => t.name === 'Admin')) user.tags.push({ name: 'Admin', color: '#DBB3B1' });
+        user.role = 'admin';
         await user.save();
       }
       userId = user._id;
@@ -70,8 +72,8 @@ router.post('/google', async (req, res) => {
       dbAvatar = user.profilePhoto || payload['picture'];
     }
 
-    if (isAdmin && !dbTags.includes('Admin')) {
-      dbTags.push('Admin');
+    if (isAdmin && !dbTags.some(t => t.name === 'Admin')) {
+      dbTags.push({ name: 'Admin', color: '#DBB3B1' });
     }
 
     // 5. Build JWT and Login Response

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, X, Loader2, Cat } from 'lucide-react';
 import FiltersPanel from '../components/adopt/FiltersPanel';
 import PetCard from '../components/adopt/PetCard';
+import ShelterLocator from '../components/adopt/ShelterLocator';
 
 const Adopt = () => {
   const [pets, setPets] = useState([]);
@@ -60,51 +61,7 @@ const Adopt = () => {
      fetchPets(activeFilters, searchQuery);
   };
 
-  const removeFilterItem = (key, value) => {
-     const updated = { ...activeFilters };
-     if (Array.isArray(updated[key])) {
-       updated[key] = updated[key].filter(v => v !== value);
-      } else {
-        updated[key] = (key === 'age') ? null : '';
-      }
-     setActiveFilters(updated);
-     fetchPets(updated, searchQuery);
-  };
 
-  // Helper to render filter tags
-  const renderActiveTags = () => {
-    const tags = [];
-    if (activeFilters.location) tags.push({ key: 'location', label: `Location: ${activeFilters.location}`, val: activeFilters.location });
-    activeFilters.ownerType.forEach(o => tags.push({ key: 'ownerType', label: `Owner: ${o}`, val: o }));
-    if (activeFilters.age !== null && activeFilters.age !== 999) {
-      const y = Math.floor(activeFilters.age / 12);
-      const m = activeFilters.age % 12;
-      let label = "";
-      if (activeFilters.age === 0) label = "Newborn";
-      else if (activeFilters.age < 12) label = `Under ${activeFilters.age}m`;
-      else label = m > 0 ? `Under ${y}y ${m}m` : `Under ${y}y`;
-      tags.push({ key: 'age', label, val: activeFilters.age });
-    }
-    
-    activeFilters.type.forEach(t => tags.push({ key: 'type', label: t, val: t }));
-    activeFilters.color.forEach(c => tags.push({ key: 'color', label: c, val: c }));
-
-    if (tags.length === 0) return null;
-
-    return (
-      <div className="flex flex-wrap gap-2 mb-6">
-        {tags.map((tag, idx) => (
-          <span key={idx} className="bg-pastel-blue/10 text-pastel-blue border border-pastel-blue/20 px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 animate-in fade-in zoom-in">
-             {tag.label}
-             <button onClick={() => removeFilterItem(tag.key, tag.val)} className="hover:text-red-500 rounded-full p-0.5 transition-colors">
-                <X size={14} />
-             </button>
-          </span>
-        ))}
-        <button onClick={() => handleApplyFilters({ type: [], location: '', age: null, color: [], ownerType: [] })} className="text-sm font-bold text-gray-400 hover:text-black underline px-2">Clear all</button>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-[#fafafa] pt-8 pb-20">
@@ -142,26 +99,32 @@ const Adopt = () => {
               </form>
 
               {/* Filters Button */}
-              <button 
-                 onClick={() => setIsFilterOpen(true)}
-                 className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-black text-white rounded-full font-bold shadow-lg hover:bg-gray-800 transition-colors"
-              >
-                 <Filter size={18} />
-                 Filters ▼
-              </button>
+              {activeTab === 'Pets' && (
+                <button 
+                   onClick={() => setIsFilterOpen(true)}
+                   className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-black text-white rounded-full font-bold shadow-lg hover:bg-gray-800 transition-colors"
+                >
+                   <Filter size={18} />
+                   Filters ▼
+                </button>
+              )}
            </div>
         </div>
 
-        {renderActiveTags()}
 
         {/* Grid Area */}
-        {loading ? (
-          <div className="py-20 flex justify-center items-center">
-            <Loader2 className="animate-spin text-pastel-pink" size={48} />
-          </div>
+        {activeTab === 'Shelters' ? (
+           <div className="mt-4 min-h-[50vh]">
+              <ShelterLocator searchQuery={searchQuery} />
+           </div>
         ) : (
-          <React.Fragment>
-            {pets.length > 0 ? (
+          loading ? (
+            <div className="py-20 flex justify-center items-center">
+              <Loader2 className="animate-spin text-pastel-pink" size={48} />
+            </div>
+          ) : (
+            <React.Fragment>
+              {pets.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {pets.map(pet => (
                   <PetCard key={pet._id} pet={pet} />
@@ -174,8 +137,9 @@ const Adopt = () => {
                  <p className="text-gray-500 mt-2">Try adjusting your filters or search criteria.</p>
                  <button onClick={() => handleApplyFilters({ type: [], location: '', age: null, color: [], ownerType: [] })} className="mt-6 px-6 py-2 bg-pastel-pink text-white rounded-full font-bold hover:scale-105 transition-transform shadow-sm">Clear Filters</button>
               </div>
-            )}
-          </React.Fragment>
+             )}
+            </React.Fragment>
+          )
         )}
 
       </div>

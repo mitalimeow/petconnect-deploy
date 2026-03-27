@@ -21,11 +21,10 @@ exports.getMe = async (req, res) => {
   }
 };
 
-exports.getProfileByUsername = async (req, res) => {
+exports.getProfileById = async (req, res) => {
   try {
-    console.log("Frontend fetching profile mapping for username:", req.params.username);
-    const user = await User.findOne({ username: req.params.username })
-      .select('-__v');
+    console.log("Frontend fetching profile mapping for ID:", req.params.id);
+    const user = await User.findById(req.params.id).select('-__v');
       
     if (!user) {
       console.log("User not found in DB returning 404!");
@@ -36,17 +35,14 @@ exports.getProfileByUsername = async (req, res) => {
 
     const isOwner = req.user && req.user.id === user._id.toString();
     const isFriend = req.user && user.friends.includes(req.user.id);
+    const isProfessional = user.role === 'professional';
 
     const profile = user.toObject();
     
     // Privacy logic overrides
-    if (!isOwner) {
-      if (!profile.isPhonePublic && !isFriend) {
-        profile.phone = 'Private (Friends Only)';
-      }
-      if (!profile.isEmailVisible && !isFriend) {
-        profile.email = 'Private (Friends Only)';
-      }
+    if (!isOwner && !isFriend && !isProfessional) {
+      profile.phone = 'Private (Contacts Only)';
+      profile.email = 'Private (Contacts Only)';
     }
 
     res.json({ profile, isOwner, isFriend, isSelf: isOwner });
@@ -66,11 +62,15 @@ exports.updateProfile = async (req, res) => {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     }
     
-    // Force permanent 'Community Member' explicit default tag
+    // Convert string tags to standard DB Object formatting to prevent CastErrors
     if (updates.tags && Array.isArray(updates.tags)) {
       if (!updates.tags.includes('Community Member')) {
         updates.tags.push('Community Member');
       }
+      updates.tags = updates.tags.map(t => ({
+         name: typeof t === 'string' ? t : t.name,
+         color: (typeof t === 'string' ? (t === 'Admin' ? '#DBB3B1' : '#B5D2CB') : t.color)
+      }));
     }
     
     const mongoose = require('mongoose');

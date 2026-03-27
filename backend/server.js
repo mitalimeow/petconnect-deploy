@@ -19,7 +19,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/profile', require('./routes/profileRoutes'));
 app.use('/api/friends', require('./routes/friendRoutes')); 
 app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/events', require('./routes/events'));
+// app.use('/api/events', require('./routes/events')); // Temporarily disabled - file missing from remote
 app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/pets', require('./routes/petRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));

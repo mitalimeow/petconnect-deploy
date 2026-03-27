@@ -26,8 +26,9 @@ export default function UserSearch() {
         return;
       }
       try {
+        const userCache = JSON.parse(localStorage.getItem('petconnect_user') || '{}');
         const res = await fetch(`http://localhost:5000/api/users/search?q=${query}`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${userCache.token}` }
         });
         if (!res.ok) throw new Error("Search API error");
         const data = await res.json();
@@ -69,7 +70,7 @@ export default function UserSearch() {
             <div
               key={user._id}
               onClick={() => {
-                navigate(`/profile/${user.username}`);
+                navigate(`/profile/${user._id}`);
                 setIsOpen(false);
                 setQuery('');
               }}

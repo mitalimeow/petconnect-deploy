@@ -14,17 +14,19 @@ const TAG_COLORS = {
   'Transporter': '#eeadad',
   'Pet Stylist': '#eeadeb',
   'Rescuer': '#f7f5c3',
+  'Admin': '#d9d9d9',
 };
 
 const TagBadge = ({ tag }) => {
-  const bgColor = TAG_COLORS[tag] || '#d9d9d9'; // fallback to light gray
-
+  const tagName = typeof tag === 'object' ? tag.name : tag;
+  const tagColor = TAG_COLORS[tagName] || '#d9d9d9'; // strictly override
+  
   return (
     <span 
       className="px-3 py-1 rounded-[10px] text-sm font-semibold text-gray-800 shadow-sm border border-black/80 transition-transform hover:scale-105 inline-block"
-      style={{ backgroundColor: bgColor }}
+      style={{ backgroundColor: tagColor }}
     >
-      {tag}
+      {tagName}
     </span>
   );
 };

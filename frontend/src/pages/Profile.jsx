@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext';
 const DEFAULT_AVATAR = "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png";
 
 const Profile = () => {
-  const { username } = useParams();
+  const { id } = useParams();
   const { user } = useAuth();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,13 +33,10 @@ const Profile = () => {
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
         
-        // Smart fallback parser securely handling outdated Google LocalStorage architectures
-        const fallbackSlug = userCache.name ? userCache.name.replace(/\s+/g, '-').toLowerCase() : 'mock-user';
-        const targetUsername = username === 'me' ? (userCache.username || fallbackSlug) : username;
-        
-        if (!targetUsername) return;
+        const targetId = id;
+        if (!targetId) return;
 
-        const endpoint = username === 'me' ? 'http://localhost:5000/api/profile/me' : `http://localhost:5000/api/profile/${targetUsername}`;
+        const endpoint = `http://localhost:5000/api/profile/${targetId}`;
         const res = await fetch(`${endpoint}?t=${Date.now()}`, { headers });
         if (res.ok) {
           const data = await res.json();
@@ -50,15 +47,15 @@ const Profile = () => {
         } else {
           // Fallback context if DB isn't populated for this user preview
           setProfileData({
-            isOwner: username === 'me',
+            isOwner: id === userCache.id,
             isFriend: false,
             profile: {
               name: userCache.name || 'New Pet Owner',
-              username: targetUsername,
-              location: '',
+              username: userCache.username || 'user',
+              location: userCache.location || '',
               phone: '',
               email: userCache.email || '',
-              tags: Array.from(new Set([...(userCache.tags || []), 'Community Member'])),
+              tags: [...(userCache.tags || []), { name: 'Community Member', color: '#B5D2CB' }],
               friends: [],
               bannerImage: '',
               profilePhoto: userCache.avatar || DEFAULT_AVATAR,
@@ -74,7 +71,7 @@ const Profile = () => {
     };
     
     fetchProfile();
-  }, [username, user, refreshTrigger]);
+  }, [id, user, refreshTrigger]);
 
   const handleAddFriend = async () => {
     try {
@@ -142,8 +139,16 @@ const Profile = () => {
               )}
             </div>
 
+            {profile.username && (
+               <p className="text-pastel-blue font-bold text-lg mt-2 tracking-wide">
+                  @{profile.username}
+               </p>
+            )}
+
             <div className="flex flex-wrap gap-2 mt-4">
-              {profile.tags && profile.tags.map(tag => <TagBadge key={tag} tag={tag} />)}
+              {profile.tags && Array.from(new Set(profile.tags.map(t => typeof t === 'object' ? t.name : t))).map((tagName, i) => (
+                 <TagBadge key={i} tag={tagName} />
+              ))}
             </div>
 
             {profile.location && (

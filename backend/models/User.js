@@ -18,7 +18,13 @@ const UserSchema = new mongoose.Schema({
   isEmailVisible: { type: Boolean, default: false },
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   friendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'FriendRequest' }],
-  posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }]
+  posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
+  role: {
+    type: String,
+    enum: ["user", "admin", "professional"],
+    default: "user"
+  },
+  isVerified: { type: Boolean, default: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);
