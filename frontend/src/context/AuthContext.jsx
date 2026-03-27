@@ -8,7 +8,13 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('petconnect_user');
-    return storedUser ? JSON.parse(storedUser) : null;
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      if (!parsed.tags) parsed.tags = [];
+      if (parsed.email === 'mitalipaullol268@gmail.com' && !parsed.tags.includes('Admin')) parsed.tags.push('Admin');
+      return parsed;
+    }
+    return null;
   });
 
 
@@ -19,6 +25,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('petconnect_user', JSON.stringify(userData));
   };
 
+  const updateUser = (updates) => {
+    setUser(prev => {
+      const updatedUser = { ...prev, ...updates };
+      localStorage.setItem('petconnect_user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('petconnect_user');
@@ -26,7 +40,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

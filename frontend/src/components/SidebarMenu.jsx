@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { X, Home, Heart, Users, Phone, MapPin, BookOpen } from 'lucide-react';
+import { X, Home, Heart, Users, Phone, MapPin, BookOpen, ClipboardList } from 'lucide-react';
 
 const SidebarMenu = ({ isOpen, onClose }) => {
   const menuItems = [
@@ -11,6 +11,7 @@ const SidebarMenu = ({ isOpen, onClose }) => {
     { name: 'Helpline', icon: Phone, path: '/helpline' },
     { name: 'Lost & Found', icon: MapPin, path: '/lost-found' },
     { name: 'Education', icon: BookOpen, path: '/education' },
+    { name: 'Tag Applications', icon: ClipboardList, path: '/applications' },
   ];
 
   return createPortal(
