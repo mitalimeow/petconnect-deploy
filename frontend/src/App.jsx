@@ -9,6 +9,10 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import LostFound from './pages/LostFound';
 import EducationSection from './pages/Education';
+import Applications from './pages/Applications';
+import AdminPanel from './pages/AdminPanel';
+
+import Adopt from './pages/Adopt';
 
 function App() {
   return (
@@ -21,11 +25,14 @@ function App() {
             <main className="flex-1 w-full relative z-10 pt-20">
               <Routes>
                 <Route path="/" element={<Landing />} />
+                <Route path="/adopt" element={<Adopt />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile/:username" element={<Profile />} />
                 <Route path="/lost-found" element={<LostFound />} />
                 <Route path="/education/*" element={<EducationSection />} />
+                <Route path="/applications" element={<Applications />} />
+                <Route path="/admin-panel" element={<AdminPanel />} />
               </Routes>
             </main>
           </div>

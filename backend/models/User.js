@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
   bio: { type: String, default: '' },
   location: { type: String, default: '' },
   tags: [{ type: String }],
+  notifications: [{ type: String }],
   phone: { type: String, default: '' },
   isPhonePublic: { type: Boolean, default: false },
   isEmailVisible: { type: Boolean, default: false },

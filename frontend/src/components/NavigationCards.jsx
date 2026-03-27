@@ -44,6 +44,14 @@ const initialCards = [
     link: "/education",
     color: "bg-purple-100",
     imagePlaceholder: "education image"
+  },
+  {
+    title: "Professional Verification",
+    subtitle: "Apply for expert tags like Vet, Trainer, or Shelter Owner.",
+    action: "Apply Now >",
+    link: "/applications",
+    color: "bg-orange-100/50",
+    imagePlaceholder: "verification image"
   }
 ];
 

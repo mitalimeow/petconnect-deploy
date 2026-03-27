@@ -43,6 +43,9 @@ const Profile = () => {
         const res = await fetch(`${endpoint}?t=${Date.now()}`, { headers });
         if (res.ok) {
           const data = await res.json();
+          if (data.offlineFallback) {
+             throw new Error("MongoDB Offline - Triggering local cache");
+          }
           setProfileData(data);
         } else {
           // Fallback context if DB isn't populated for this user preview
@@ -50,26 +53,16 @@ const Profile = () => {
             isOwner: username === 'me',
             isFriend: false,
             profile: {
-              name: 'Prisha Raje',
+              name: userCache.name || 'New Pet Owner',
               username: targetUsername,
-              location: 'Thane',
-              phone: '+91 9594360507',
-              email: 'mitalipaullol268@gmail.com',
-              tags: ['Pet Owner', 'Volunteer'],
+              location: '',
+              phone: '',
+              email: userCache.email || '',
+              tags: Array.from(new Set([...(userCache.tags || []), 'Community Member'])),
               friends: [],
-              bannerImage: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1600&q=80',
-              profilePhoto: DEFAULT_AVATAR,
-              posts: [
-                {
-                  _id: 'mock1',
-                  timeAgo: '5 days ago',
-                  author: {
-                    name: 'Prisha Raje',
-                    profilePhoto: DEFAULT_AVATAR,
-                    tags: ['Pet Owner', 'Volunteer']
-                  }
-                }
-              ]
+              bannerImage: '',
+              profilePhoto: userCache.avatar || DEFAULT_AVATAR,
+              posts: []
             }
           });
         }
@@ -103,8 +96,8 @@ const Profile = () => {
 
   const { profile, isOwner, isFriend } = profileData;
 
-  const displayPhone = (isOwner || isFriend) ? profile.phone : "Private (Friends Only)";
-  const displayEmail = (isOwner || isFriend) ? profile.email : "Private (Friends Only)";
+  const displayPhone = profile.phone ? ((isOwner || isFriend || profile.isPhonePublic) ? profile.phone : "Private") : null;
+  const displayEmail = profile.email ? ((isOwner || isFriend || profile.isEmailVisible) ? profile.email : "Private") : null;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 mb-20">
@@ -177,14 +170,18 @@ const Profile = () => {
             ))}
 
             <div className="text-left md:text-right mt-4 flex flex-col gap-2 w-full md:w-auto">
-              <div className="flex items-center justify-start md:justify-end gap-2 text-gray-800 font-bold tracking-wide">
-                <Phone size={16} className="text-gray-400" />
-                {displayPhone}
-              </div>
-              <div className="flex items-center justify-start md:justify-end gap-2 text-blue-500 font-medium cursor-pointer hover:underline">
-                <Mail size={16} className="text-blue-400" />
-                {displayEmail}
-              </div>
+              {displayPhone && (
+                <div className="flex items-center justify-start md:justify-end gap-2 text-gray-800 font-bold tracking-wide">
+                  <Phone size={16} className="text-gray-400" />
+                  {displayPhone}
+                </div>
+              )}
+              {displayEmail && (
+                <div className="flex items-center justify-start md:justify-end gap-2 text-blue-500 font-medium cursor-pointer hover:underline">
+                  <Mail size={16} className="text-blue-400" />
+                  {displayEmail}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -200,7 +197,7 @@ const Profile = () => {
           </div>
         ) : (
           <div className="bg-white rounded-[20px] p-8 text-center text-gray-500 border border-gray-100 shadow-sm">
-            {profile.name} hasn't posted anything yet.
+            {isOwner ? "You haven't made any posts." : `${profile.name} hasn't posted anything yet.`}
           </div>
         )}
       </div>

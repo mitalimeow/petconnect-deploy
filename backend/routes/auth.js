@@ -29,6 +29,12 @@ router.post('/google', async (req, res) => {
     let userId = payload['sub'];
     let dbEmail = payload['email'];
     let dbUsername = payload['name'].replace(/\s+/g, '-').toLowerCase();
+    let dbTags = [];
+    let dbName = payload['name'];
+    let dbAvatar = payload['picture'];
+
+    const adminEmails = ["mitalipaullol268@gmail.com", "siddhipatel0707@gmail.com"];
+    const isAdmin = adminEmails.includes(payload['email']);
 
     if (mongoose.connection.readyState === 1) {
       // Find or create User in DB
@@ -41,28 +47,45 @@ router.post('/google', async (req, res) => {
           username = `${baseUsername}${suffix}`;
           suffix++;
         }
+        
+        let initialTags = ['Community Member'];
+        if (isAdmin) initialTags.push('Admin');
+
         user = new User({
           username,
           name: payload['name'],
           email: payload['email'],
           profilePhoto: payload['picture'] || '',
-          tags: ['Community Member']
+          tags: initialTags
         });
+        await user.save();
+      } else if (isAdmin && !user.tags.includes('Admin')) {
+        user.tags.push('Admin');
         await user.save();
       }
       userId = user._id;
       dbUsername = user.username;
+      dbTags = user.tags;
+      dbName = user.name;
+      dbAvatar = user.profilePhoto || payload['picture'];
     }
 
-    const token = jwt.sign({ id: userId, email: dbEmail }, process.env.JWT_SECRET || 'secret-key', { expiresIn: '7d' });
+    if (isAdmin && !dbTags.includes('Admin')) {
+      dbTags.push('Admin');
+    }
+
+    // 5. Build JWT and Login Response
+    const token = jwt.sign({ id: userId, email: dbEmail, name: dbName, tags: dbTags }, process.env.JWT_SECRET || 'secret-key', { expiresIn: '7d' });
 
     res.json({ 
       user: {
         id: userId,
         username: dbUsername,
-        name: payload['name'],
-        profilePhoto: payload['picture'],
-        email: payload['email']
+        name: dbName,
+        avatar: dbAvatar,
+        profilePhoto: dbAvatar,
+        email: payload['email'],
+        tags: dbTags
       },  
       token 
     });

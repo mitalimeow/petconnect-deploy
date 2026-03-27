@@ -71,8 +71,10 @@ const Navbar = () => {
 
       {/* Right Area */}
       <nav className="flex items-center gap-6 font-medium">
-        <Link to="/education" className="hover:text-pastel-pink transition-colors hidden sm:block text-gray-700">Education</Link>
         <Link to="/about" className="hover:text-pastel-pink transition-colors hidden sm:block">About Us</Link>
+        {(user?.tags?.includes('Admin') || user?.email === 'mitalipaullol268@gmail.com') && (
+          <Link to="/admin-panel" className="hover:text-pastel-pink transition-colors hidden sm:block font-bold text-pastel-blue">Admin Panel</Link>
+        )}
         
         {!user ? (
           <div className="flex items-center gap-4">

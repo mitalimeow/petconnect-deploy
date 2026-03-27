@@ -36,7 +36,7 @@ const StatsPieChart = () => {
               {/* Soft glow background behind chart */}
               <div className="absolute inset-0 bg-[#FFF0F0] rounded-full blur-2xl transform scale-110"></div>
               
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <PieChart>
                   <Tooltip 
                     contentStyle={{ 

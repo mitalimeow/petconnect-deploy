@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle, UploadCloud, Loader2, AlertCircle } from 'lucide-react';
 import Select from 'react-select';
+import { useAuth } from '../../context/AuthContext';
 
 // Firebase
 import { initializeApp } from "firebase/app";
@@ -37,6 +38,8 @@ const INDIAN_CITIES = [
 const DEFAULT_AVATAR = "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png";
 
 const EditProfileModal = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
+  const { updateUser } = useAuth();
+  
   const [formData, setFormData] = useState({
     name: '', phone: '', isPhonePublic: false, location: null,
     isEmailVisible: false, tags: [], profilePhoto: '', bannerImage: ''
@@ -198,8 +201,13 @@ const EditProfileModal = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
         // Universally sync the application local memory without breaking 5MB quotas
         const currentCache = JSON.parse(localStorage.getItem('petconnect_user') || '{}');
         currentCache.name = backendDoc.name;
+        // Optionally cache avatar if it was uploaded
+        if (backendDoc.profilePhoto) currentCache.avatar = backendDoc.profilePhoto;
         localStorage.setItem('petconnect_user', JSON.stringify(currentCache));
         
+        // Push update to Global React Context so the Navbar live-reloads instantly!
+        updateUser({ name: backendDoc.name, profilePhoto: backendDoc.profilePhoto, avatar: backendDoc.profilePhoto || currentCache.avatar });
+
         // Dispatch React DOM Refresh sequence
         onSaveSuccess();
         onClose();
