@@ -12,6 +12,8 @@ import EducationSection from './pages/Education';
 import Applications from './pages/Applications';
 import AdminPanel from './pages/AdminPanel';
 
+import Adopt from './pages/Adopt';
+
 function App() {
   return (
     <AuthProvider>
@@ -23,6 +25,7 @@ function App() {
             <main className="flex-1 w-full relative z-10 pt-20">
               <Routes>
                 <Route path="/" element={<Landing />} />
+                <Route path="/adopt" element={<Adopt />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile/:username" element={<Profile />} />

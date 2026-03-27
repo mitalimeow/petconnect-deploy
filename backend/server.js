@@ -20,6 +20,7 @@ app.use('/api/profile', require('./routes/profileRoutes'));
 app.use('/api/friends', require('./routes/friendRoutes')); 
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
+app.use('/api/pets', require('./routes/petRoutes'));
 
 app.get('/api/user/me', require('./middleware/auth'), async (req, res) => {
   try {
