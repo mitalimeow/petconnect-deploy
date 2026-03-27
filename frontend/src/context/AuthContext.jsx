@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext();
 
@@ -11,9 +11,7 @@ export const AuthProvider = ({ children }) => {
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  // Check token on mount in a real app
-  useEffect(() => {
-  }, []);
+
 
   const login = (userData) => {
     // Simulated Google Login Auth

@@ -21,4 +21,15 @@ app.use('/api/friends', require('./routes/friendRoutes'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/events', require('./routes/events'));
 
+app.get('/api/user/me', require('./middleware/auth'), async (req, res) => {
+  try {
+    const User = require('./models/User');
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ name: user.name });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
