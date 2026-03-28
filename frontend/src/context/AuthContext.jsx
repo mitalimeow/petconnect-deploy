@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -16,9 +16,30 @@ export const AuthProvider = ({ children }) => {
     }
     return null;
   });
+  // Inside AuthProvider immediately after state initialization:
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === null || e.key === 'petconnect_user') {
+        const stored = localStorage.getItem('petconnect_user');
+        if (!stored) {
+          setUser(null);
+          if (window.location.pathname !== '/') {
+            window.location.href = '/';
+          }
+        } else {
+          try {
+            const parsed = JSON.parse(stored);
+            setUser(parsed);
+          } catch (err) {
+            console.error('Failed to sync auth state', err);
+          }
+        }
+      }
+    };
 
-
-
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   const login = (userData) => {
     // Simulated Google Login Auth
     setUser(userData);
@@ -35,7 +56,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('petconnect_user');
+    localStorage.clear();
     window.location.href = '/';
   };
 

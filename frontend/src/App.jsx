@@ -14,6 +14,7 @@ import Helpline from './pages/Helpline';
 import Applications from './pages/Applications';
 import AdminPanel from './pages/AdminPanel';
 import Adopt from './pages/Adopt';
+import ProtectedRoute from './components/ProtectedRoute'; // Strict Guest Wall
 
 function App() {
   return (
@@ -26,16 +27,17 @@ function App() {
             <main className="flex-1 w-full relative z-10 pt-20">
               <Routes>
                 <Route path="/" element={<Landing />} />
-                <Route path="/adopt" element={<Adopt />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                
+                {/* Protected Application Features */}
+                <Route path="/adopt" element={<ProtectedRoute><Adopt /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/profile/:id" element={<Profile />} />
-                <Route path="/lost-found" element={<LostFound />} />
-                <Route path="/education/*" element={<EducationSection />} />
-                <Route path="/helpline" element={<Helpline />} />
-                {/* <Route path="/community" element={<Community />} /> */}
-                <Route path="/applications" element={<Applications />} />
-                <Route path="/admin-panel" element={<AdminPanel />} />
+                <Route path="/lost-found" element={<ProtectedRoute><LostFound /></ProtectedRoute>} />
+                <Route path="/education/*" element={<ProtectedRoute><EducationSection /></ProtectedRoute>} />
+                <Route path="/helpline" element={<ProtectedRoute><Helpline /></ProtectedRoute>} />
+                <Route path="/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
+                <Route path="/admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
               </Routes>
             </main>
           </div>

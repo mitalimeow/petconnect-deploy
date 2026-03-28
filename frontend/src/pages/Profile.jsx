@@ -46,23 +46,8 @@ const Profile = () => {
           }
           setProfileData(data);
         } else {
-          // Fallback context if DB isn't populated for this user preview
-          setProfileData({
-            isOwner: id === userCache.id,
-            isFriend: false,
-            profile: {
-              name: userCache.name || 'New Pet Owner',
-              username: userCache.username || 'user',
-              location: userCache.location || '',
-              phone: '',
-              email: userCache.email || '',
-              tags: [...(userCache.tags || []), { name: 'Community Member', color: '#B5D2CB' }],
-              friends: [],
-              bannerImage: '',
-              profilePhoto: userCache.avatar || DEFAULT_AVATAR,
-              posts: []
-            }
-          });
+          // Explicit failure if the targeted profile user unique ID is invalid
+          setProfileData(null);
         }
       } catch (err) {
         console.error("Failed to fetch profile", err);
@@ -130,7 +115,7 @@ const Profile = () => {
               <h1 className="text-4xl md:text-5xl font-handwritten font-bold text-gray-900 m-0 leading-none">
                 {profile.name}
               </h1>
-              {isOwner && (
+              {user && isOwner && (
                 <button 
                   onClick={() => setIsEditModalOpen(true)}
                   className="p-1.5 text-gray-400 hover:text-black transition-colors rounded-full hover:bg-gray-100 border border-gray-200 shadow-sm"
@@ -162,18 +147,20 @@ const Profile = () => {
           
           {/* Right Side: Info Panel */}
           <div className="mt-8 md:mt-2 flex flex-col items-start md:items-end gap-3 w-full md:w-auto">
-            {isOwner ? (
-              <button className="px-6 py-2.5 bg-[#f7b5b5] text-black border border-black/20 font-bold rounded-[12px] hover:scale-105 transition-transform shadow-sm whitespace-nowrap">
-                Upload Pet
-              </button>
-            ) : (!isFriend && (
-              <button 
-                onClick={handleAddFriend}
-                className="px-6 py-2.5 bg-pastel-blue text-white font-bold rounded-[12px] hover:scale-105 transition-transform shadow-sm whitespace-nowrap"
-              >
-                Add Friend
-              </button>
-            ))}
+            {user && (
+              isOwner ? (
+                <button className="px-6 py-2.5 bg-[#f7b5b5] text-black border border-black/20 font-bold rounded-[12px] hover:scale-105 transition-transform shadow-sm whitespace-nowrap">
+                  Upload Pet
+                </button>
+              ) : (!isFriend && (
+                <button 
+                  onClick={handleAddFriend}
+                  className="px-6 py-2.5 bg-pastel-blue text-white font-bold rounded-[12px] hover:scale-105 transition-transform shadow-sm whitespace-nowrap"
+                >
+                  {friendshipStatus === 'pending_sent' ? 'Request Sent' : 'Add Friend'}
+                </button>
+              ))
+            )}
 
             <div className="text-left md:text-right mt-4 flex flex-col gap-2 w-full md:w-auto">
               {displayPhone && (
@@ -195,7 +182,7 @@ const Profile = () => {
 
 
 
-      {isOwner && (
+      {user && isOwner && (
         <EditProfileModal 
           isOpen={isEditModalOpen} 
           onClose={() => setIsEditModalOpen(false)} 

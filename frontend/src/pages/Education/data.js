@@ -20,7 +20,10 @@ export const articles = [
       <p>Unneutered males have highly pungent urine and will frequently "spray" vertically to mark territory. Neutering significantly reduces this behavior, along with roaming to find mates, fighting with other males, and excessive nighttime vocalization. Spayed females will no longer go into heat (estrus)—meaning they won't yowl constantly, rub excessively against furniture, or assume a mating posture.</p>
       
       <p><em>Veterinarian Note:</em> If you are still unsure after checking these signs, ask your vet. They can shave a small patch of belly hair to look for a scar, or perform an anti-Müllerian hormone (AMH) blood test to definitively confirm the presence of reproductive tissue.</p>
-    `
+    `,
+    likes: 0,
+    comments: [],
+    articleUrl: "/education/1"
   },
   {
     id: 2,
@@ -62,7 +65,10 @@ export const articles = [
         <li>Absence of destructive behaviors like excessive chewing or digging.</li>
         <li>A higher-pitched, short, happy bark during play.</li>
       </ul>
-    `
+    `,
+    likes: 0,
+    comments: [],
+    articleUrl: "/education/2"
   },
   {
     id: 3,
@@ -93,7 +99,10 @@ export const articles = [
 
       <h2>The Obesity Epidemic</h2>
       <p>Over 50% of pets are overweight or obese, leading to diabetes, joint pain, and a decreased lifespan. Measure your pet's food with a standardized measuring cup, log their treats, and consult your vet to find their ideal daily caloric intake.</p>
-    `
+    `,
+    likes: 0,
+    comments: [],
+    articleUrl: "/education/3"
   },
   {
     id: 4,
@@ -119,7 +128,10 @@ export const articles = [
       
       <h2>The First Post-Adoption Vet Visit</h2>
       <p>Schedule a wellness exam with a local veterinarian within the first 72 hours of bringing your new pet home. Bring all adoption paperwork so your vet can establish a baseline, check for underlying health issues, and set up a vaccination schedule.</p>
-    `
+    `,
+    likes: 0,
+    comments: [],
+    articleUrl: "/education/4"
   },
   {
     id: 5,
@@ -150,7 +162,10 @@ export const articles = [
         <li>Ingestion of known toxins (chocolate, xylitol, antifreeze)</li>
         <li>Seizures lasting longer than 3 minutes</li>
       </ul>
-    `
+    `,
+    likes: 0,
+    comments: [],
+    articleUrl: "/education/5"
   },
   {
     id: 6,
@@ -174,6 +189,9 @@ export const articles = [
       
       <h2>5. Look into Pet Health Insurance</h2>
       <p>Veterinary medicine has advanced incredibly, but MRI scans, cancer treatments, and emergency surgeries can cost thousands of dollars. Enrolling your pet in a health insurance plan while they are young and healthy (before any pre-existing conditions arise) can save you from having to make heartbreaking financial decisions later.</p>
-    `
+    `,
+    likes: 0,
+    comments: [],
+    articleUrl: "/education/6"
   }
 ];
