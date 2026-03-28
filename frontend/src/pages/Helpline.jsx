@@ -199,7 +199,6 @@ const Helpline = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-<<<<<<< HEAD
   const filteredClinics = (clinics || [])
     .filter(c => {
       const search = (searchQuery || '').toLowerCase();
@@ -207,13 +206,6 @@ const Helpline = () => {
       const specialtyMatch = Array.isArray(c?.specialties) && c.specialties.some(s => s?.toLowerCase().includes(search));
       return nameMatch || specialtyMatch;
     });
-=======
-  const filteredClinics = clinics
-    .filter(c => 
-      (c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-       c.specialties.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())))
-    );
->>>>>>> d5c2d4f8f26d1e93eb9d54255540adb74f3e08ed
 
   const visibleClinics = filteredClinics.slice(0, visibleCount);
   const hasMore = visibleCount < filteredClinics.length;
