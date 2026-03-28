@@ -29,6 +29,11 @@ app.use('/api/pets', require('./routes/petRoutes'));
 // app.use('/api/users', require('./routes/userRoutes')); // File deleted
 // app.use('/api/posts', require('./routes/postRoutes')); // File deleted
 
+// Root Route for API Health Check
+app.get('/', (req, res) => {
+  res.send('PetConnect API is running successfully! Access the web app through the Vercel frontend URL.');
+});
+
 app.get('/api/user/me', require('./middleware/auth'), async (req, res) => {
   try {
     const User = require('./models/User');

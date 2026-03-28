@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Phone, MapPin, Navigation, Search, X } from 'lucide-react';
+import { Phone, Search, MapPin, Navigation, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-const ClinicCard = ({ clinic }) => {
-  const { name, distance, isOpen, address, municipality, phone, lat, lng, specialties } = clinic;
+const ShelterCard = ({ shelter }) => {
+  const { name, distance, address, municipality, phone, lat, lng } = shelter;
   const [showPhoneModal, setShowPhoneModal] = useState(false);
 
   return (
@@ -26,7 +26,7 @@ const ClinicCard = ({ clinic }) => {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 font-medium">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 font-medium mt-2">
             <div className="flex items-center gap-4">
               {municipality && (
                 <div className="flex items-center gap-1.5 text-gray-700 font-bold">
@@ -54,7 +54,7 @@ const ClinicCard = ({ clinic }) => {
             </button>
           ) : (
             <a 
-              href={`https://www.google.com/search?q=${encodeURIComponent(name + " veterinary")}`}
+              href={`https://www.google.com/search?q=${encodeURIComponent(name + " animal shelter")}`}
               target="_blank"
               rel="noreferrer"
               className="p-2.5 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all duration-300 shadow-sm"
@@ -99,7 +99,7 @@ const ClinicCard = ({ clinic }) => {
                 </div>
                 
                 <h3 className="text-xl font-bold text-gray-900 mb-1 px-4">{name}</h3>
-                <p className="text-gray-500 font-medium mb-6 text-sm">Contact the clinic directly at</p>
+                <p className="text-gray-500 font-medium mb-6 text-sm">Contact the shelter directly at</p>
                 
                 <div 
                   className="w-full flex items-center justify-center gap-2 py-4 px-6 bg-gray-50 border border-gray-200 text-gray-800 rounded-2xl font-bold text-xl tracking-wide select-all"
@@ -115,4 +115,4 @@ const ClinicCard = ({ clinic }) => {
   );
 };
 
-export default ClinicCard;
+export default ShelterCard;
