@@ -10,31 +10,21 @@ const data = [
 
 const StatsPieChart = () => {
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 md:px-12 mb-16">
-      <div className="bg-white rounded-[30px] p-8 md:p-12 border border-border/50 shadow-soft">
+    <div className="w-full max-w-6xl mx-auto px-4 md:px-12 mb-16 mt-8">
+      
+      {/* Title */}
+      <h2 className="text-center md:text-left text-[28px] md:text-3xl font-poppins font-semibold text-[#2D3748] mb-8">
+        Animals Adopted Last Year
+      </h2>
+
+      {/* Container */}
+      <div className="bg-white/80 rounded-3xl p-8 md:p-12 border border-border/50 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05),0_4px_6px_-2px_rgba(0,0,0,0.05)] backdrop-blur-md">
         
         <div className="flex flex-col md:flex-row items-center justify-between gap-12">
           
-          {/* Legend Area (Left Side) */}
-          <div className="flex-1 space-y-6 md:pl-8">
-            {data.map((entry, index) => (
-              <div key={index} className="flex items-center gap-4 group cursor-default">
-                <div 
-                  className="w-10 h-8 rounded-full shadow-sm transition-transform group-hover:scale-110"
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-2xl md:text-3xl font-handwritten text-[#3D3D3D]">
-                  {entry.name}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Chart Area (Right Side) */}
-          <div className="flex-1 w-full flex justify-center items-center h-[300px] md:h-[400px]">
+          {/* Chart Area (Left Side) */}
+          <div className="flex-1 w-full flex justify-center items-center h-[300px] md:h-[400px] order-1">
             <div className="w-[280px] h-[280px] md:w-[350px] md:h-[350px] relative">
-              {/* Soft glow background behind chart */}
-              <div className="absolute inset-0 bg-[#FFF0F0] rounded-full blur-2xl transform scale-110"></div>
               
               <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <PieChart>
@@ -53,11 +43,13 @@ const StatsPieChart = () => {
                     data={data}
                     cx="50%"
                     cy="50%"
-                    innerRadius={0}
+                    innerRadius="65%"
                     outerRadius="90%"
+                    paddingAngle={4}
+                    cornerRadius={8}
                     dataKey="value"
-                    stroke="white"
-                    strokeWidth={4}
+                    stroke="#ffffff"
+                    strokeWidth={2}
                     animationBegin={200}
                     animationDuration={1500}
                   >
@@ -69,46 +61,36 @@ const StatsPieChart = () => {
                       />
                     ))}
                   </Pie>
-                  
-                  {/* Custom Labels overlay for percentages */}
-                  {/* Only using Tooltip for exact match to clean aesthetic, but adding custom labels inside for the wireframe feel */}
-                  <Pie
-                    data={data}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={0}
-                    outerRadius="90%"
-                    dataKey="value"
-                    stroke="none"
-                    fill="transparent"
-                    labelLine={false}
-                    label={({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
-                      const RADIAN = Math.PI / 180;
-                      // Place labels a bit closer to the edge for better visibility
-                      const radius = innerRadius + (outerRadius - innerRadius) * 0.65;
-                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-                      return (
-                        <text 
-                          x={x} 
-                          y={y} 
-                          fill="white" 
-                          textAnchor="middle" 
-                          dominantBaseline="central"
-                          className="font-bold text-sm md:text-base"
-                          style={{ pointerEvents: 'none', filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.3))' }}
-                        >
-                          {`${value}%`}
-                        </text>
-                      );
-                    }}
-                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
-          
+
+          {/* Legend Area (Right Side) */}
+          <div className="flex-1 w-full space-y-4 md:pl-8 order-2">
+            {data.map((entry, index) => (
+              <div key={index} className="flex justify-between items-center group cursor-default w-full p-3 hover:bg-black/5 rounded-xl transition-colors">
+                
+                <div className="flex items-center gap-4">
+                  {/* Rounded square swatch: 12px x 12px, border-radius 4px */}
+                  <div 
+                    className="w-[12px] h-[12px] shrink-0 rounded-[4px] shadow-sm transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  <span className="text-lg md:text-xl font-raleway font-medium text-[#4A5568]">
+                    {entry.name}
+                  </span>
+                </div>
+
+                {/* Table feel percentage */}
+                <span className="text-lg md:text-xl font-raleway font-bold text-[#4A5568] pl-5 border-l-2 border-gray-200/60">
+                  {entry.value}%
+                </span>
+
+              </div>
+            ))}
+          </div>
+
         </div>
         
       </div>

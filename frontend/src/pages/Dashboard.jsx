@@ -3,7 +3,7 @@ import WelcomeBanner from '../components/WelcomeBanner';
 import EventsCarousel from '../components/EventsCarousel';
 import NavigationCards from '../components/NavigationCards';
 import StatsPieChart from '../components/StatsPieChart';
-import UserSearch from '../components/community/UserSearch';
+// import UserSearch from '../components/community/UserSearch';
 
 const Dashboard = () => {
   return (
@@ -11,7 +11,7 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pt-8">
         {/* User Search Bar */}
         <div className="w-full flex justify-end mb-6">
-          <UserSearch />
+          {/* <UserSearch /> */}
         </div>
 
         {/* 1. Welcome Section */}

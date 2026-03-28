@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Tilt } from 'react-tilt';
+import Tilt from 'react-parallax-tilt';
 import { articles } from './data';
 import { Search } from 'lucide-react';
 
@@ -23,7 +23,12 @@ const ArticleCard = ({ article }) => {
 
   return (
     <Tilt
-      options={{ max: 15, scale: 1.05, speed: 400, glare: true, "max-glare": 0.3 }}
+      tiltMaxAngleX={15}
+      tiltMaxAngleY={15}
+      scale={1.05}
+      transitionSpeed={400}
+      glareEnable={true}
+      glareMaxOpacity={0.3}
       className="cursor-pointer h-full"
     >
       <motion.div

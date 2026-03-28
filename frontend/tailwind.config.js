@@ -25,6 +25,9 @@ export default {
       fontFamily: {
         body: ['Nunito', 'sans-serif'],
         handwritten: ['Caveat', 'cursive'],
+        raleway: ['Raleway', 'sans-serif'],
+        playwrite: ['"Playwrite US Trad"', 'cursive'],
+        poppins: ['Poppins', 'sans-serif'],
       },
       borderRadius: {
         'xl': '1rem',
