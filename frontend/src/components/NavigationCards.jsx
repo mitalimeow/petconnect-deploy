@@ -22,14 +22,6 @@ const initialCards = [
     imagePlaceholder: "lost pet image"
   },
   {
-    title: "Have something on your mind?",
-    subtitle: "Let us know!",
-    action: "Community >",
-    link: "/community",
-    color: "bg-pastel-yellow/20",
-    imagePlaceholder: "community discussion"
-  },
-  {
     title: "Injured Pet?",
     subtitle: "Search for your nearest clinic!",
     action: "Helpline >",

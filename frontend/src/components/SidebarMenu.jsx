@@ -7,7 +7,6 @@ const SidebarMenu = ({ isOpen, onClose }) => {
   const menuItems = [
     { name: 'Dashboard', icon: Home, path: '/dashboard' },
     { name: 'Adopt Me!', icon: Heart, path: '/adopt' },
-    { name: 'Community', icon: Users, path: '/community' },
     { name: 'Helpline', icon: Phone, path: '/helpline' },
     { name: 'Lost & Found', icon: MapPin, path: '/lost-found' },
     { name: 'Education', icon: BookOpen, path: '/education' },

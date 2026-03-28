@@ -10,11 +10,9 @@ import Profile from './pages/Profile';
 import LostFound from './pages/LostFound';
 import EducationSection from './pages/Education';
 import Helpline from './pages/Helpline';
-// import Community from './pages/Community';
 import Applications from './pages/Applications';
 import AdminPanel from './pages/AdminPanel';
 import Adopt from './pages/Adopt';
-import Community from './pages/Community';
 
 function App() {
   return (
@@ -34,10 +32,8 @@ function App() {
                 <Route path="/lost-found" element={<LostFound />} />
                 <Route path="/education/*" element={<EducationSection />} />
                 <Route path="/helpline" element={<Helpline />} />
-                {/* <Route path="/community" element={<Community />} /> */}
                 <Route path="/applications" element={<Applications />} />
                 <Route path="/admin-panel" element={<AdminPanel />} />
-                <Route path="/community" element={<Community />} />
               </Routes>
             </main>
           </div>

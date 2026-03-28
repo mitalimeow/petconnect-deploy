@@ -82,3 +82,26 @@ exports.getProfileById = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.searchUsers = async (req, res) => {
+  try {
+    const query = req.query.q;
+    if (!query) {
+      return res.json([]);
+    }
+
+    const users = await User.find({
+      $or: [
+        { name: { $regex: query, $options: 'i' } },
+        { username: { $regex: query, $options: 'i' } }
+      ]
+    })
+    .select('_id name username profilePhoto')
+    .limit(10);
+
+    res.json(users);
+  } catch (err) {
+    console.error('Search error:', err);
+    res.status(500).json({ message: 'Server error during search' });
+  }
+};
