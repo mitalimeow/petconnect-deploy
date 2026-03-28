@@ -10,7 +10,7 @@ import Profile from './pages/Profile';
 import LostFound from './pages/LostFound';
 import EducationSection from './pages/Education';
 import Helpline from './pages/Helpline';
-// import Community from './pages/Community';
+import Community from './pages/Community';
 import Applications from './pages/Applications';
 import AdminPanel from './pages/AdminPanel';
 import Adopt from './pages/Adopt';
@@ -36,8 +36,17 @@ function App() {
                 <Route path="/lost-found" element={<ProtectedRoute><LostFound /></ProtectedRoute>} />
                 <Route path="/education/*" element={<ProtectedRoute><EducationSection /></ProtectedRoute>} />
                 <Route path="/helpline" element={<ProtectedRoute><Helpline /></ProtectedRoute>} />
+                <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
                 <Route path="/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
                 <Route path="/admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+              </Routes>
+            </main>
+          </div>
+        </ClickSpark>
+      </Router>
+    </AuthProvider>
+  );
+}
               </Routes>
             </main>
           </div>

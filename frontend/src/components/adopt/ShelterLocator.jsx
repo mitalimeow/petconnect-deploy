@@ -16,6 +16,10 @@ function getDistance(lat1, lon1, lat2, lon2) {
 
 const mapTomTomData = (poiData) => {
   const distKm = poiData.dist ? (poiData.dist / 1000) : 0;
+  let openNow = true;
+  if (poiData.poi && poiData.poi.openingHours && typeof poiData.poi.openingHours.isOpen === 'boolean') {
+    openNow = poiData.poi.openingHours.isOpen;
+  }
   
   return {
      id: poiData.id,
@@ -26,6 +30,9 @@ const mapTomTomData = (poiData) => {
      lat: poiData.position?.lat,
      lng: poiData.position?.lon,
      distance: distKm,
+     specialties: [],
+     isOpen: openNow,
+     is247: false
   };
 };
 
@@ -35,7 +42,7 @@ const ShelterLocator = ({ searchQuery = "" }) => {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [visibleCount, setVisibleCount] = useState(10);
-
+  
   const abortControllerRef = useRef(null);
   const debounceTimerRef = useRef(null);
 
@@ -79,10 +86,11 @@ const ShelterLocator = ({ searchQuery = "" }) => {
       if (!API_KEY) throw new Error("Missing VITE_TOMTOM_API_KEY");
       
       const fetchWithRadius = async (radius) => {
-        const queryTerm = searchQuery ? `${searchQuery} animal shelter rescue` : 'animal shelter rescue';
+        const queryTerm = searchQuery || 'animal shelter';
         const finalRadius = searchQuery ? 100000 : radius; 
-        const targetUrl = `https://api.tomtom.com/search/2/search/${encodeURIComponent(queryTerm)}.json?key=${API_KEY}&lat=${lat}&lon=${lng}&radius=${finalRadius}`;
-        
+        // We use poiSearch and omit the veterinary category Set (9375) so it defaults to finding shelters
+        const targetUrl = `https://api.tomtom.com/search/2/poiSearch/${encodeURIComponent(queryTerm)}.json?key=${API_KEY}&lat=${lat}&lon=${lng}&radius=${finalRadius}`;
+
         const executeFetchWithBackoff = async (retries = 3, delay = 1000) => {
           try {
             const res = await fetch(targetUrl, { method: 'GET', signal });
@@ -106,22 +114,26 @@ const ShelterLocator = ({ searchQuery = "" }) => {
         return await res.json();
       };
 
-      let data = await fetchWithRadius(25000);
+      let data = await fetchWithRadius(25000); // 25km radius for shelters since they are sparser
 
       if (!data.results || data.results.length === 0) {
-         setErrorMsg("No animal shelters found nearby.");
-         setShelters([]);
+        setErrorMsg("No verified shelters found in your immediate area.");
+        setShelters([]);
       } else {
-        const mapped = data.results.map(mapTomTomData);
-        mapped.sort((a,b) => a.distance - b.distance);
+        const realShelters = data.results.map(mapTomTomData);
+        realShelters.sort((a,b) => a.distance - b.distance);
         
-        if (!searchQuery) sessionStorage.setItem(cacheKey, JSON.stringify(mapped));
-        setShelters(mapped);
+        if (!searchQuery) sessionStorage.setItem(cacheKey, JSON.stringify(realShelters));
+        setShelters(realShelters);
       }
     } catch(err) {
       if (err.name === 'AbortError') return;
       console.error(err);
-      setErrorMsg(`We're having trouble reaching the shelter database.`);
+      if (err.message === "Missing VITE_TOMTOM_API_KEY") {
+        setErrorMsg('Invalid API Key Detected - Please check .env formatting.');
+      } else {
+        setErrorMsg(`We're having trouble reaching the shelter database.`);
+      }
       setShelters([]);
     } finally {
       setLoading(false);
@@ -148,21 +160,16 @@ const ShelterLocator = ({ searchQuery = "" }) => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       if (abortControllerRef.current) abortControllerRef.current.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]); // Re-fetch when searchQuery changes
+  }, [searchQuery]); // Run fetch on searchQuery changes too!
 
-  const filtered = shelters.filter(c => 
-    (c.name.toLowerCase().includes(searchQuery?.toLowerCase() || ''))
-  );
-
+  const filtered = shelters.filter(c => (c.name.toLowerCase().includes(searchQuery?.toLowerCase() || '')));
   const visibleShelters = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
 
   return (
     <div className="flex flex-col w-full h-full min-h-[400px]">
-
       {errorMsg && (
-        <div className="mb-6 bg-amber-50 text-amber-700 px-4 py-3 border border-amber-100 rounded-2xl text-[14px] font-bold shadow-sm flex items-center gap-2">
+        <div className="mb-6 bg-amber-50 text-amber-700 px-4 py-3 border border-amber-100 rounded-2xl text-[14px] font-bold shadow-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
           <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
           {errorMsg}
         </div>

@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Core Rules for Lost & Found Application
+    match /LostPets/{reportId} {
+      
+      // Global Read access for Map & Grid queries (Swiper.js)
+      allow read: if true;
+      
+      // CREATE: Only authenticated users can write new reports.
+      allow create: if request.auth != null;
+      
+      // UPDATE: Only the document owner can update their report (i.e. strictly setting to "Found")
+      allow update: if request.auth != null && request.auth.uid == resource.data.owner_id;
+      
+      // DELETE: Only the document owner can withdraw entirely
+      allow delete: if request.auth != null && request.auth.uid == resource.data.owner_id;
+    }
+  }
+}

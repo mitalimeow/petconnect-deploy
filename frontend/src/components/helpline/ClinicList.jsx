@@ -23,13 +23,18 @@ const ClinicList = ({ clinics, loading, hasMore, onLoadMore }) => {
   }
 
   return (
-    <div className="flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm mt-4 mb-20">
+    <div className="flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm mt-4 mb-20 min-h-[100px]">
       <AnimatePresence mode="popLayout">
-        {clinics.map((clinic) => (
-          <ClinicCard key={clinic.id} clinic={clinic} />
-        ))}
+        {clinics && clinics.length > 0 ? (
+          clinics.map((clinic) => (
+            clinic && clinic.id ? <ClinicCard key={clinic.id} clinic={clinic} /> : null
+          ))
+        ) : (
+          <div className="p-10 text-center text-gray-400 font-bold">
+            No results available in this view.
+          </div>
+        )}
       </AnimatePresence>
-
       {hasMore && (
         <div className="p-6 border-t border-gray-50 flex justify-center bg-gray-50/30">
           <button 

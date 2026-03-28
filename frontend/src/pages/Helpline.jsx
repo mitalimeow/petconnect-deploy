@@ -199,11 +199,13 @@ const Helpline = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filteredClinics = clinics
-    .filter(c => 
-      (c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-       c.specialties.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())))
-    );
+  const filteredClinics = (clinics || [])
+    .filter(c => {
+      const search = (searchQuery || '').toLowerCase();
+      const nameMatch = c?.name?.toLowerCase().includes(search);
+      const specialtyMatch = Array.isArray(c?.specialties) && c.specialties.some(s => s?.toLowerCase().includes(search));
+      return nameMatch || specialtyMatch;
+    });
 
   const visibleClinics = filteredClinics.slice(0, visibleCount);
   const hasMore = visibleCount < filteredClinics.length;

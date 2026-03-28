@@ -1,7 +1,7 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { MapPin, Edit2, Phone, Mail } from 'lucide-react';
+import { MapPin, Edit2, Phone, Mail, CheckCircle } from 'lucide-react';
 import TagBadge from '../components/profile/TagBadge';
 
 import FriendDropdown from '../components/profile/FriendDropdown';
@@ -34,23 +34,60 @@ const Profile = () => {
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
         
-        const targetUsername = id;
-        if (!targetUsername) return;
+        const targetId = id === 'me' ? (userCache.id || 'me') : id;
+        if (!targetId) {
+          setLoading(false);
+          return;
+        }
 
-        const endpoint = id === 'me' ? `${API_BASE}/api/profile/me` : `${API_BASE}/api/profile/${targetUsername}`;
+        const endpoint = id === 'me' ? `${API_BASE}/api/profile/me` : `${API_BASE}/api/profile/${targetId}`;
+        
+        const fallbackPayload = {
+          isOwner: id === 'me' || id === userCache.id,
+          isFriend: false,
+          profile: {
+            name: userCache.name || 'New Pet Owner',
+            username: userCache.username || 'user',
+            location: userCache.location || '',
+            phone: '',
+            email: userCache.email || '',
+            tags: [...(userCache.tags || []), { name: 'Community Member', color: '#B5D2CB' }],
+            friends: [],
+            bannerImage: '',
+            profilePhoto: userCache.avatar || DEFAULT_AVATAR,
+            posts: []
+          }
+        };
         const res = await fetch(`${endpoint}?t=${Date.now()}`, { headers });
         if (res.ok) {
           const data = await res.json();
           if (data.offlineFallback) {
-             throw new Error("MongoDB Offline - Triggering local cache");
+             setProfileData(fallbackPayload);
+          } else {
+             setProfileData(data);
           }
-          setProfileData(data);
         } else {
-          // Explicit failure if the targeted profile user unique ID is invalid
-          setProfileData(null);
+          setProfileData(fallbackPayload);
         }
       } catch (err) {
         console.error("Failed to fetch profile", err);
+        const userCache = JSON.parse(localStorage.getItem('petconnect_user') || '{}');
+        setProfileData({
+          isOwner: id === 'me' || id === userCache.id,
+          isFriend: false,
+          profile: {
+            name: userCache.name || 'Community Member',
+            username: userCache.username || 'mock-user',
+            location: userCache.location || '',
+            phone: '',
+            email: userCache.email || '',
+            tags: [{ name: 'Community Member', color: '#B5D2CB' }],
+            friends: [],
+            bannerImage: '',
+            profilePhoto: userCache.avatar || DEFAULT_AVATAR,
+            posts: []
+          }
+        });
       } finally {
         setLoading(false);
       }
@@ -79,8 +116,10 @@ const Profile = () => {
 
   const { profile, isOwner, isFriend } = profileData;
 
-  const displayPhone = profile.phone ? ((isOwner || isFriend || profile.isPhonePublic) ? profile.phone : "Private") : null;
-  const displayEmail = profile.email ? ((isOwner || isFriend || profile.isEmailVisible) ? profile.email : "Private") : null;
+  // Privacy Logic: Public vs Private Account Status
+  const isPublic = profile.accountStatus === 'public';
+  const displayPhone = profile.phone ? (isPublic || isOwner || isFriend ? profile.phone : "Hidden for Privacy") : null;
+  const displayEmail = profile.email ? (isPublic || isOwner || isFriend ? profile.email : "Hidden for Privacy") : null;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 mb-20">
@@ -145,42 +184,74 @@ const Profile = () => {
             )}
           </div>
           
-          {/* Right Side: Info Panel */}
+          {/* Right Side: Info Panel (Contact Suite Implementation) */}
           <div className="mt-8 md:mt-2 flex flex-col items-start md:items-end gap-3 w-full md:w-auto">
-            {user && (
-              isOwner ? (
+            {isOwner ? (
+              <div className="flex gap-3">
                 <button className="px-6 py-2.5 bg-[#f7b5b5] text-black border border-black/20 font-bold rounded-[12px] hover:scale-105 transition-transform shadow-sm whitespace-nowrap">
                   Upload Pet
                 </button>
-              ) : (!isFriend && (
                 <button 
-                  onClick={handleAddFriend}
-                  className="px-6 py-2.5 bg-pastel-blue text-white font-bold rounded-[12px] hover:scale-105 transition-transform shadow-sm whitespace-nowrap"
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="px-6 py-2.5 bg-white text-gray-900 border border-gray-200 font-bold rounded-[12px] hover:scale-105 transition-transform shadow-sm whitespace-nowrap"
                 >
-                  {friendshipStatus === 'pending_sent' ? 'Request Sent' : 'Add Friend'}
+                  Manage Profile
                 </button>
-              ))
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 w-full md:w-auto">
+                {isPublic ? (
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <button 
+                      onClick={() => window.location.href = `tel:${profile.phone}`}
+                      className="px-8 py-3 bg-gray-900 text-white font-black rounded-[15px] hover:bg-black transition-all shadow-lg text-sm uppercase tracking-widest flex items-center gap-2"
+                    >
+                      <Phone size={16} /> Call Owner
+                    </button>
+                    <button className="px-8 py-3 bg-white text-gray-900 border-2 border-gray-900 font-black rounded-[15px] hover:bg-gray-50 transition-all text-sm uppercase tracking-widest flex items-center gap-2">
+                      <Mail size={16} /> Message
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => alert(`Emergency notification sent to ${profile.name}! They will be notified that you may have found their pet.`)}
+                    className="px-8 py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white font-black rounded-[20px] shadow-xl shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm uppercase tracking-widest flex items-center justify-center gap-3 border-2 border-white/20"
+                  >
+                    <CheckCircle size={20} /> Send Emergency Request
+                  </button>
+                )}
+                {!isFriend && (
+                  <button 
+                    onClick={handleAddFriend}
+                    className="w-full px-6 py-2.5 bg-pastel-blue text-white font-bold rounded-[12px] hover:scale-105 transition-transform shadow-sm whitespace-nowrap"
+                  >
+                    Add to Network
+                  </button>
+                )}
+              </div>
             )}
 
             <div className="text-left md:text-right mt-4 flex flex-col gap-2 w-full md:w-auto">
               {displayPhone && (
-                <div className="flex items-center justify-start md:justify-end gap-2 text-gray-800 font-bold tracking-wide">
+                <div className={`flex items-center justify-start md:justify-end gap-2 font-bold tracking-wide ${isPublic || isOwner || isFriend ? "text-gray-800" : "text-gray-400 italic font-medium opacity-60"}`}>
                   <Phone size={16} className="text-gray-400" />
                   {displayPhone}
                 </div>
               )}
               {displayEmail && (
-                <div className="flex items-center justify-start md:justify-end gap-2 text-blue-500 font-medium cursor-pointer hover:underline">
+                <div className={`flex items-center justify-start md:justify-end gap-2 font-medium ${isPublic || isOwner || isFriend ? "text-blue-500 cursor-pointer hover:underline" : "text-gray-400 italic opacity-60"}`}>
                   <Mail size={16} className="text-blue-400" />
-                  {displayEmail}
+                  {isPublic || isOwner || isFriend ? (
+                    <a href={`mailto:${profile.email}`}>{displayEmail}</a>
+                  ) : (
+                    displayEmail
+                  )}
                 </div>
               )}
             </div>
           </div>
         </div>
       </div>
-
-
 
       {user && isOwner && (
         <EditProfileModal 

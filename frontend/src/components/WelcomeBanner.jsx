@@ -25,7 +25,12 @@ const WelcomeBanner = () => {
         
         if (response.ok) {
           const data = await response.json();
-          setUserName(data.name);
+          if (data.offlineFallback) {
+             const storedUser = localStorage.getItem('petconnect_user');
+             if (storedUser) setUserName(JSON.parse(storedUser).name);
+          } else {
+             setUserName(data.name);
+          }
         } else {
           // Fallback if API fails
           const storedUser = localStorage.getItem('petconnect_user');
