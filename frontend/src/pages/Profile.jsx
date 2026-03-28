@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapPin, Edit2, Phone, Mail } from 'lucide-react';
 import TagBadge from '../components/profile/TagBadge';
-import PostCard from '../components/profile/PostCard';
+
 import FriendDropdown from '../components/profile/FriendDropdown';
 import EditProfileModal from '../components/profile/EditProfileModal';
 import { useAuth } from '../context/AuthContext';
@@ -193,20 +193,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* 6. Posts Section */}
-      <div className="mt-12">
-        <h2 className="text-3xl font-handwritten font-bold text-gray-800 mb-6">Recent posts:</h2>
-        
-        {profile.posts && profile.posts.length > 0 ? (
-          <div className="space-y-6">
-            {profile.posts.map(post => <PostCard key={post._id} post={post} />)}
-          </div>
-        ) : (
-          <div className="bg-white rounded-[20px] p-8 text-center text-gray-500 border border-gray-100 shadow-sm">
-            {isOwner ? "You haven't made any posts." : `${profile.name} hasn't posted anything yet.`}
-          </div>
-        )}
-      </div>
+
 
       {isOwner && (
         <EditProfileModal 
