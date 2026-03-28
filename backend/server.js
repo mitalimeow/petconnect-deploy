@@ -26,6 +26,7 @@ app.use('/api/notifications', require('./routes/notifications'));
 // app.use('/api/events', require('./routes/events')); // Temporarily disabled - file missing from remote
 app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/pets', require('./routes/petRoutes'));
+app.use('/api/education', require('./routes/educationRoutes'));
 // app.use('/api/users', require('./routes/userRoutes')); // File deleted
 // app.use('/api/posts', require('./routes/postRoutes')); // File deleted
 
