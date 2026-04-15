@@ -37,8 +37,12 @@ app.get('/', (req, res) => {
   res.send('PetConnect API is running successfully! Access the web app through the Vercel frontend URL.');
 });
 
-app.get('/api/user/me', require('./middleware/auth'), async (req, res) => {
+app.get('/api/user/me', require('./middleware/optionalAuth'), async (req, res) => {
   try {
+    if (!req.user?.id) {
+      return res.json({ authenticated: false });
+    }
+
     const User = require('./models/User');
     const fetchUser = User.findById(req.user.id).exec();
     const user = await Promise.race([

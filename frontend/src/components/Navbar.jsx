@@ -1,12 +1,12 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SidebarMenu from './SidebarMenu';
 import ProfileMenu from './ProfileMenu';
 import NotificationDropdown from './NotificationDropdown';
-import { useGoogleLogin } from '@react-oauth/google';
+
 
 const DEFAULT_AVATAR = "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png";
 
@@ -17,39 +17,69 @@ const Navbar = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const googleLogin = useGoogleLogin({
-    flow: 'implicit',
-    onSuccess: async (tokenResponse) => {
-      try {
-        const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        }).then(res => res.json());
+  // Handle redirect flow token extraction from URL hash
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token=')) {
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get('access_token');
+      
+      if (accessToken) {
+        // Clear the hash from the URL without triggering a page reload
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
         
-        // Pass info to our backend to generate DB-tied Cookie Session
-        const res = await fetch(`${API_BASE}/api/auth/google`, {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           credentials: 'include',
-           body: JSON.stringify({ userInfo })
-        });
-        
-        if (res.ok) {
-           await login(); // AuthContext will independently fetch the profile
-           navigate('/dashboard');
-        } else {
-           console.error("Backend login sync failed");
-           alert("Login failed: The backend server rejected the login.");
-        }
-      } catch (err) {
-        console.error('Login failed', err);
-        alert("Login failed: Could not connect to the backend server. Is your backend running on port 5000?");
+        // Process the login using the extracted token
+        const finishLogin = async () => {
+          try {
+            const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }).then(res => res.json());
+            
+            const res = await fetch(`${API_BASE}/api/auth/google`, {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               credentials: 'include',
+               body: JSON.stringify({ userInfo })
+            });
+            
+            if (res.ok) {
+               await login();
+               navigate('/dashboard');
+            } else {
+               console.error("Backend login sync failed");
+               alert("Login failed: The backend server rejected the login.");
+            }
+          } catch (err) {
+            console.error('Login failed during redirect handling', err);
+            alert("Login failed: Could not connect to the backend server.");
+          }
+        };
+        finishLogin();
       }
-    },
-    onError: (error) => {
-      console.error("Google Login failed:", error);
-      alert("Google Login failed: " + (error.error || "Unknown error"));
+    } else if (hash && hash.includes('error=')) {
+       console.error("Google Login redirect error:", hash);
+       alert("Google Login failed or was cancelled.");
+       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
-  });
+  }, [login, navigate]);
+
+  const googleLogin = () => {
+    const CLIENT_ID = "218392211032-3nao1pf0f288r85gib69dcvjhma8oub0.apps.googleusercontent.com";
+    const rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+    const options = {
+      redirect_uri: window.location.origin,
+      client_id: CLIENT_ID,
+      access_type: 'online',
+      response_type: 'token',
+      prompt: 'consent',
+      scope: [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ].join(' '),
+    };
+    const qs = new URLSearchParams(options);
+    window.location.href = `${rootUrl}?${qs.toString()}`;
+  };
 
   return (
     <header className="fixed w-full top-0 left-0 bg-white/80 backdrop-blur-md z-50 border-b border-border shadow-sm px-6 py-4 flex items-center justify-between transition-all">

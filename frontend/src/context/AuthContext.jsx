@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
         
         if (res.ok) {
            const mongoData = await res.json();
-           if (!mongoData.offlineFallback) {
+           if (!mongoData.offlineFallback && mongoData.authenticated !== false) {
               setUser(mongoData);
               localStorage.setItem('petconnect_user', JSON.stringify(mongoData));
            } else {
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
       });
       if (res.ok) {
          const mongoData = await res.json();
-         if (!mongoData.offlineFallback) {
+         if (!mongoData.offlineFallback && mongoData.authenticated !== false) {
             setUser(mongoData);
             localStorage.setItem('petconnect_user', JSON.stringify(mongoData));
             return mongoData;
