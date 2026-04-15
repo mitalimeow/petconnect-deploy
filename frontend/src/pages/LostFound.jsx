@@ -1,18 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/pagination';
+import PetCard from '../components/adopt/PetCard';
 import geohash from 'ngeohash';
 import L from 'leaflet';
 import { CheckCircle, UploadCloud, X, MapPin, Phone } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { db } from '../firebaseConfig';
-import { collection, query, orderBy, startAt, endAt, onSnapshot } from 'firebase/firestore';
-import * as geofire from 'geofire-common';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import CardSkeleton from '../components/common/CardSkeleton';
 
 // Fix leaflet default icon issue when used with Webpack/Vite
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -32,6 +27,7 @@ const LostFound = () => {
   
   // New State for Modal Flow
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedPet, setSelectedPet] = useState(null);
 
   // Smart Location State
   const [address, setAddress] = useState('');
@@ -49,75 +45,97 @@ const LostFound = () => {
 
   // Real-time Firebase State (Replaced Mocks)
   const [recentReports, setRecentReports] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(16);
 
   useEffect(() => {
     if (!position || position.lat === 0) return;
 
-    const center = [position.lat, position.lng];
-    const radiusInM = 20 * 1000; // 20km for coverage
-    const bounds = geofire.geohashQueryBounds(center, radiusInM);
-
-    const unsubscribes = [];
-    const matchedDocs = new Map();
-
-    if (!db) {
-      console.warn("Firebase not configured. Bypassing live sync.");
-      setRecentReports([]);
-      return;
-    }
-
-    for (const b of bounds) {
-      const q = query(
-        collection(db, 'LostPets'),
-        orderBy('geohash'),
-        startAt(b[0]),
-        endAt(b[1])
-      );
-
-      const unsub = onSnapshot(q, (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-          const pet = change.doc.data();
-          const docId = change.doc.id;
-          
-          if (change.type === 'removed' || pet.status !== 'Lost') {
-            matchedDocs.delete(docId);
-          } else {
-            const petLat = pet.location?.latitude;
-            const petLng = pet.location?.longitude;
-            
-            if (petLat && petLng) {
-                const dist = geofire.distanceBetween(center, [petLat, petLng]);
-                if (dist <= 20) { 
-                  matchedDocs.set(docId, { 
-                    id: docId, 
-                    distanceKm: dist, 
-                    name: pet.pet_name, 
-                    type: pet.animal_type,
-                    photo: pet.photo_url || "https://images.unsplash.com/photo-1543466835-00a7907e9de1",
-                    characteristics: pet.characteristics,
-                    ownerUsername: pet.owner_id,
-                    ...pet 
-                  });
+    const fetchLocalPets = async () => {
+      try {
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const res = await fetch(`${API_BASE}/api/lost?lat=${position.lat}&lng=${position.lng}`);
+        if (res.ok) {
+          const data = await res.json();
+          const mappedPets = data.map(pet => {
+             // Handle numeric extraction from distance string like "3.1 km" or "400 m"
+             let distNum = 0.5;
+             if (pet.distance) {
+                if (pet.distance.includes('m') && !pet.distance.includes('km')) {
+                   // meters
+                   distNum = parseFloat(pet.distance) / 1000;
                 } else {
-                  matchedDocs.delete(docId); 
+                   distNum = parseFloat(pet.distance);
                 }
-            } else {
-                matchedDocs.delete(docId);
-            }
-          }
-        });
-        
-        setRecentReports(Array.from(matchedDocs.values()));
-      });
-      unsubscribes.push(unsub);
-    }
+             }
+             
+              return {
+                ...pet,
+                id: pet._id,
+                distanceKm: distNum, 
+                distanceRaw: pet.distance,
+                name: pet.petName,
+                type: pet.animalType,
+                photo: pet.image,
+                characteristics: pet.extraInfo,
+                ownerUsername: pet.ownerId?.username || '',
+                ownerName: pet.ownerId?.name || 'Community Member',
+                ownerPhoto: pet.ownerId?.profilePhoto || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
+                lat: pet.lastSeenLocation?.lat,
+                lng: pet.lastSeenLocation?.lng,
+                address: pet.lastSeenLocation?.address || 'Unknown Location'
+             };
+          });
+          // Sort descendingly to be closest distance first
+          const sortedPets = mappedPets.sort((a, b) => a.distanceKm - b.distanceKm);
+          setRecentReports(sortedPets);
+        }
+      } catch (err) {
+        console.error("Error fetching lost pets from backend:", err);
+      }
+    };
 
-    return () => unsubscribes.forEach(unsub => unsub());
+    fetchLocalPets();
   }, [position]);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const markerRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Hook into Notification cross-page clicks
+  useEffect(() => {
+    if (location.state?.openPetId) {
+       const fetchTargetPet = async () => {
+          try {
+             const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+             const res = await fetch(`${API_BASE}/api/lost/${location.state.openPetId}`);
+             if (res.ok) {
+                const p = await res.json();
+                setSelectedPet({
+                   id: p._id,
+                   distanceKm: 0.1, // mock since it could be far
+                   name: p.petName,
+                   type: p.animalType,
+                   photo: p.image,
+                   characteristics: p.extraInfo,
+                   ownerUsername: p.ownerId?.username || '',
+                   ownerName: p.ownerId?.name || 'Community Member',
+                   ownerPhoto: p.ownerId?.profilePhoto || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
+                   lat: p.lastSeenLocation?.lat,
+                   lng: p.lastSeenLocation?.lng,
+                   address: p.lastSeenLocation?.address || 'Unknown Location'
+                });
+
+                // Clear history state immediately so refresh doesn't reopen it
+                window.history.replaceState({}, document.title);
+             }
+          } catch(err) {
+             console.error("Failed to load cross-page pet", err);
+          }
+       };
+       fetchTargetPet();
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -125,6 +143,15 @@ const LostFound = () => {
         (pos) => {
           setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
           setLoadingLoc(false);
+
+          // Background sync to backend for distance calculations
+          const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+          fetch(`${API_BASE}/api/profile/location`, {
+             method: 'PATCH',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+             credentials: 'include'
+          }).catch(err => console.log('Location sync failed silently', err));
         },
         (err) => {
           console.warn("Geolocation denied or error. Using default location.", err);
@@ -211,11 +238,49 @@ const LostFound = () => {
     if (e.target.files && e.target.files[0]) processImage(e.target.files[0]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate Broadcast
-    setShowSuccessModal(true);
-    setIsReportModalOpen(false);
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const payload = {
+        petName,
+        animalType,
+        extraInfo: characteristics,
+        image: imagePreview,
+        lastSeenLocation: {
+          address,
+          lat: position.lat,
+          lng: position.lng
+        }
+      };
+
+      const res = await fetch(`${API_BASE}/api/lost`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+      
+      if (res.ok) {
+        setShowSuccessModal(true);
+        setIsReportModalOpen(false);
+        setPetName('');
+        setAnimalType('');
+        setCharacteristics('');
+        setImagePreview(null);
+        
+        // Trigger a fake pos-change to re-fetch easily
+        setPosition(prev => ({...prev})); 
+      } else {
+        const errData = await res.json();
+        alert(errData.message || "Failed to post");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error reporting lost pet");
+    }
   };
 
   return (
@@ -233,10 +298,10 @@ const LostFound = () => {
               onClick={() => setIsReportModalOpen(true)}
               className="px-10 py-5 bg-[#E65100] text-white font-black rounded-full shadow-2xl shadow-orange-900/20 hover:bg-[#BF360C] hover:scale-105 active:scale-95 transition-all text-2xl uppercase tracking-tighter flex items-center gap-3"
             >
-              Report A Lost Pet 🚨
+              Report A Lost Pet
             </button>
             <p className="text-gray-500 font-bold text-sm tracking-wide bg-gray-50 px-6 py-2 rounded-full border border-gray-100">
-              Users within <span className="text-orange-600">10km</span> from your location will be pinged.
+               Users within <span className="text-orange-600">5km</span> from your location will be pinged.
             </p>
           </div>
         </div>
@@ -250,53 +315,33 @@ const LostFound = () => {
             </div>
           </div>
 
-          <div className="px-1 overflow-hidden">
-            <Swiper
-              modules={[Pagination]}
-              spaceBetween={24}
-              slidesPerView={'auto'}
-              pagination={{ clickable: true }}
-              className="pb-16 pet-slider"
-            >
-              {recentReports.length > 0 ? recentReports.map((pet) => (
-                <SwiperSlide key={pet.id} className="w-[320px]">
-                  <div className="bg-[#FFF9C4] rounded-[32px] overflow-hidden shadow-xl shadow-yellow-900/5 border border-yellow-100 group transition-all duration-300 hover:-translate-y-2">
-                    <div className="h-60 relative w-full overflow-hidden">
-                      <img src={pet.photo} alt={pet.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                      <div className="absolute top-4 left-4 px-4 py-1.5 bg-black/50 backdrop-blur-md rounded-full text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                        <MapPin size={12} className="text-yellow-400" />
-                        {pet.distanceKm?.toFixed(1) || '0.5'}km away
-                      </div>
-                    </div>
-                    <div className="p-7">
-                      <div className="mb-4">
-                        <h3 className="text-2xl font-handwritten font-bold text-gray-900">{pet.name}</h3>
-                        <div className="flex gap-2 mt-1">
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">Age: {pet.age || '2 yrs'}</span>
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">•</span>
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">{pet.type}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-6">
-                        <MapPin size={14} className="text-orange-400 shrink-0" />
-                        <span className="truncate">{pet.address || 'Near Mumbai Highway'}</span>
-                      </div>
-                      <button onClick={() => navigate(`/profile/${pet.ownerUsername}`)} className="w-full py-4 bg-gray-900 text-white font-black rounded-2xl shadow-lg hover:bg-black transition-all text-xs uppercase tracking-widest">
-                        Contact Owner
-                      </button>
-                    </div>
-                  </div>
-                </SwiperSlide>
+          <div className="px-1 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {recentReports.length > 0 ? recentReports.slice(0, visibleCount).map((pet) => (
+                <PetCard 
+                  key={pet.id} 
+                  pet={pet} 
+                  distance={pet.distanceRaw}
+                  hideContact={true}
+                  onClick={() => setSelectedPet(pet)}
+                />
               )) : (
-                [1,2,3].map(i => (
-                  <SwiperSlide key={i} className="w-[320px]">
-                    <div className="bg-gray-100/50 h-[450px] rounded-[32px] animate-pulse flex items-center justify-center text-gray-300 font-bold italic">
-                      Looking for pets...
-                    </div>
-                  </SwiperSlide>
+                [1,2,3,4,5,6,7,8].map(i => (
+                  <CardSkeleton key={i} variant="grid" />
                 ))
               )}
-            </Swiper>
+            </div>
+
+            {recentReports.length > visibleCount && (
+              <div className="flex justify-center mt-12">
+                <button 
+                  onClick={() => setVisibleCount(prev => prev + 16)}
+                  className="px-8 py-4 bg-white border-2 border-orange-100 text-[#E65100] font-black rounded-full hover:bg-orange-50 hover:scale-105 active:scale-95 transition-all shadow-md uppercase tracking-wider text-sm"
+                >
+                  View More ({recentReports.length - visibleCount} Left)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -356,10 +401,15 @@ const LostFound = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-1">
                           <label className="text-[11px] uppercase tracking-widest font-black text-gray-400 mb-2 block">Animal Type</label>
-                          <input 
-                            required type="text" placeholder="e.g. Dog" value={animalType} onChange={(e) => setAnimalType(e.target.value)}
-                            className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-orange-500/20 font-bold"
-                          />
+                          <select 
+                            required value={animalType} onChange={(e) => setAnimalType(e.target.value)}
+                            className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-orange-500/20 font-bold text-gray-800"
+                          >
+                            <option value="" disabled hidden>Select Animal Type...</option>
+                            {['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Turtle', 'Hamster', 'Guinea Pig', 'Others'].map(type => (
+                              <option key={type} value={type}>{type}</option>
+                            ))}
+                          </select>
                         </div>
                         <div className="col-span-1">
                           <label className="text-[11px] uppercase tracking-widest font-black text-gray-400 mb-2 block">Pet Name</label>
@@ -371,7 +421,7 @@ const LostFound = () => {
                       </div>
 
                       <div>
-                        <label className="text-[11px] uppercase tracking-widest font-black text-gray-400 mb-2 block">Distinct Characteristics</label>
+                        <label className="text-[11px] uppercase tracking-widest font-black text-gray-400 mb-2 block">Extra Information</label>
                         <textarea 
                           required rows="3" placeholder="Red collar, blue eyes, limping..." value={characteristics} onChange={(e) => setCharacteristics(e.target.value)}
                           className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-orange-500/20 font-medium resize-none"
@@ -379,7 +429,7 @@ const LostFound = () => {
                       </div>
 
                       <div>
-                        <label className="text-[11px] uppercase tracking-widest font-black text-gray-400 mb-2 block">Update Photo Evidence</label>
+                        <label className="text-[11px] uppercase tracking-widest font-black text-gray-400 mb-2 block">Upload photo of pet</label>
                         {!imagePreview ? (
                           <div 
                             className={`w-full h-32 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${isDragging ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`}
@@ -400,7 +450,7 @@ const LostFound = () => {
                       </div>
 
                       <button type="submit" className="w-full py-5 bg-[#E65100] text-white font-black rounded-3xl shadow-xl hover:bg-[#BF360C] transition-all text-xl uppercase tracking-widest">
-                        Report Lost Pet 🐾
+                        Report Lost Pet
                       </button>
                     </form>
                   </div>
@@ -412,12 +462,102 @@ const LostFound = () => {
       </AnimatePresence>
 
       <style>{`
-        .pet-slider .swiper-pagination-bullet { width: 30px; height: 6px; border-radius: 3px; background: #E65100; opacity: 0.1; transition: all 0.3s; }
-        .pet-slider .swiper-pagination-bullet-active { width: 50px; opacity: 1; background: #E65100; }
-        .pet-slider .swiper-slide { height: auto; }
         .custom-scrollbar-hidden::-webkit-scrollbar { display: none; }
         .custom-scrollbar-hidden { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
+
+      {/* Pet Details Modal */}
+      <AnimatePresence>
+        {selectedPet && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-8">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => setSelectedPet(null)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#EBE3DC] rounded-[40px] shadow-2xl w-full max-w-4xl overflow-y-auto relative z-10 custom-scrollbar-hidden flex flex-col md:flex-row p-6 md:p-10 gap-8"
+              style={{ maxHeight: 'calc(100vh - 40px)' }}
+            >
+              <button 
+                onClick={() => setSelectedPet(null)}
+                className="absolute top-6 right-8 p-3 bg-white/60 hover:bg-white text-gray-600 rounded-full transition-all z-20 shadow-sm"
+              >
+                <X size={24} strokeWidth={2.5} />
+              </button>
+
+              {/* Left: Image */}
+              <div className="w-full md:w-5/12 shrink-0 h-64 md:h-[500px] rounded-[32px] overflow-hidden shadow-inner bg-white/50 border border-white/40">
+                <img src={selectedPet.photo} alt={selectedPet.name} className="w-full h-full object-cover" />
+              </div>
+
+              {/* Right: Details */}
+              <div className="flex-1 flex flex-col pt-4">
+                 <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                       <span className="font-handwritten text-xl font-bold text-gray-800 ml-2">Name</span>
+                       <div className="mt-1 bg-white/90 px-6 py-4 rounded-2xl font-bold text-gray-900 border border-white shadow-sm text-lg">
+                          {selectedPet.name}
+                       </div>
+                    </div>
+                    <div>
+                       <span className="font-handwritten text-xl font-bold text-gray-800 ml-2">Animal Type</span>
+                       <div className="mt-1 bg-white/90 px-6 py-4 rounded-2xl font-bold text-gray-900 border border-white shadow-sm text-lg">
+                          {selectedPet.type}
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="mb-6">
+                    <span className="font-handwritten text-xl font-bold text-gray-800 ml-2">Extra information</span>
+                    <div className="mt-1 bg-white/90 px-6 py-4 rounded-2xl font-medium text-gray-700 border border-white shadow-sm min-h-[100px]">
+                       {selectedPet.characteristics || 'No additional details provided.'}
+                    </div>
+                 </div>
+
+                 <div className="mb-8 relative">
+                    <span className="font-handwritten text-xl font-bold text-gray-800 ml-2">Last seen near</span>
+                    <div className="mt-1 bg-white/90 pl-6 pr-2 py-2 rounded-2xl shadow-sm border border-white flex items-center justify-between">
+                       <span className="font-medium text-gray-700 line-clamp-2 mr-4">{selectedPet.address}</span>
+                       <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${selectedPet.lat},${selectedPet.lng}`}
+                          target="_blank" rel="noreferrer"
+                          title="Open in Google Maps"
+                          className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors shrink-0"
+                       >
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                       </a>
+                    </div>
+                 </div>
+
+                 <div className="mt-auto text-center pt-4">
+                    <p className="font-handwritten text-2xl font-bold text-gray-800 mb-4">Seen this pet? Contact owner ASAP!</p>
+                    
+                    <div 
+                       onClick={() => {
+                         setSelectedPet(null);
+                         navigate(`/profile/${selectedPet.ownerUsername}`);
+                       }}
+                       className="inline-flex items-center gap-4 bg-white/95 p-2 pr-8 rounded-full border border-white shadow-sm hover:shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95"
+                    >
+                       <img src={selectedPet.ownerPhoto} alt="Owner" className="w-14 h-14 rounded-full object-cover shadow-sm bg-gray-100" />
+                       <div className="text-left">
+                          <div className="flex items-center gap-2">
+                             <span className="font-handwritten font-bold text-xl text-gray-900">{selectedPet.ownerName}</span>
+                             <span className="bg-indigo-100 text-indigo-700 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md">Community Member</span>
+                          </div>
+                          <span className="text-gray-400 font-bold text-sm">@{selectedPet.ownerUsername}</span>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Static Success Modal (Kept from Previous) */}
       <AnimatePresence>

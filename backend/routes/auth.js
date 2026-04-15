@@ -53,23 +53,40 @@ router.post('/google', async (req, res) => {
 
         user = new User({
           username,
-          name: payload['name'],
+          name: payload['name'], // Initial default from Google
           email: payload['email'],
-          profilePhoto: payload['picture'] || '',
+          googleName: payload['name'],
+          googlePhoto: payload['picture'] || '',
+          // profilePhoto defaults to grey humanoid via schema
           tags: initialTags,
           role: isAdmin ? 'admin' : 'user'
         });
         await user.save();
-      } else if (isAdmin && (!user.tags.some(t => t.name === 'Admin') || user.role !== 'admin')) {
-        if (!user.tags.some(t => t.name === 'Admin')) user.tags.push({ name: 'Admin', color: '#DBB3B1' });
-        user.role = 'admin';
-        await user.save();
+      } else {
+        // Existing user - update Google-synced fields only
+        let shouldSave = false;
+        if (user.googleName !== payload['name']) {
+           user.googleName = payload['name'];
+           shouldSave = true;
+        }
+        if (user.googlePhoto !== (payload['picture'] || '')) {
+           user.googlePhoto = payload['picture'] || '';
+           shouldSave = true;
+        }
+        if (isAdmin && (!user.tags.some(t => t.name === 'Admin') || user.role !== 'admin')) {
+           if (!user.tags.some(t => t.name === 'Admin')) user.tags.push({ name: 'Admin', color: '#DBB3B1' });
+           user.role = 'admin';
+           shouldSave = true;
+        }
+        if (shouldSave) await user.save();
       }
+
       userId = user._id;
       dbUsername = user.username;
       dbTags = user.tags;
       dbName = user.name;
-      dbAvatar = user.profilePhoto || payload['picture'];
+      dbAvatar = user.profilePhoto; // This is the PetConnect profile photo (or default)
+      dbGooglePhoto = user.googlePhoto;
     }
 
     if (isAdmin && !dbTags.some(t => t.name === 'Admin')) {
@@ -79,22 +96,23 @@ router.post('/google', async (req, res) => {
     // 5. Build JWT and Login Response
     const token = jwt.sign({ id: userId, email: dbEmail, name: dbName, tags: dbTags }, process.env.JWT_SECRET || 'secret-key', { expiresIn: '7d' });
 
-    res.json({ 
-      user: {
-        id: userId,
-        username: dbUsername,
-        name: dbName,
-        avatar: dbAvatar,
-        profilePhoto: dbAvatar,
-        email: payload['email'],
-        tags: dbTags
-      },  
-      token 
+    res.cookie('petconnect_auth', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
+
+    res.json({ message: "Login successful" });
   } catch (error) {
     console.error('Error validating Google token', error);
     res.status(401).json({ message: 'Invalid tokens' });
   }
+});
+
+router.post('/logout', (req, res) => {
+  res.clearCookie('petconnect_auth');
+  res.json({ message: 'Logged out' });
 });
 
 module.exports = router;

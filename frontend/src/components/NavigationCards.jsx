@@ -21,15 +21,7 @@ const cards = [
     color: "bg-pastel-pink/20",
     image: "https://images.unsplash.com/photo-1593134257782-e89567b7718a?q=80&w=600",
   },
-  {
-    id: 2,
-    title: "Connect with others",
-    subtitle: "Join the local pet community!",
-    action: "Community >",
-    link: "/community",
-    color: "bg-pastel-yellow/20",
-    image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600",
-  },
+
   {
     id: 3,
     title: "Injured Pet?",
@@ -166,7 +158,10 @@ const NavigationCards = () => {
             <h3 className="text-xl font-raleway font-bold text-[#8B7355] leading-tight mb-1 h-12">
               {card.title}
             </h3>
-            <p className="text-[17px] font-playwrite text-gray-500 font-medium mb-4 h-12 line-clamp-3 leading-tight tracking-wide">
+            <p 
+              className="text-[17px] text-gray-500 font-medium mb-4 h-12 line-clamp-3 leading-tight tracking-wide"
+              style={{ fontFamily: "'Schoolbell', cursive" }}
+            >
               {card.subtitle}
             </p>
             

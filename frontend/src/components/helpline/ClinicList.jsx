@@ -1,13 +1,14 @@
 import React from 'react';
 import ClinicCard from './ClinicCard';
 import { motion, AnimatePresence } from 'motion/react';
+import CardSkeleton from '../common/CardSkeleton';
 
 const ClinicList = ({ clinics, loading, hasMore, onLoadMore }) => {
   if (loading && clinics.length === 0) {
     return (
-      <div className="flex flex-col gap-4 py-10">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-24 bg-gray-50 rounded-2xl animate-pulse" />
+      <div className="flex flex-col gap-0 py-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <CardSkeleton key={i} variant="horizontal" />
         ))}
       </div>
     );

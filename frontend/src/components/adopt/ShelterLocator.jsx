@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import geohash from 'ngeohash';
+import React, { useState } from 'react';
 import ShelterList from './ShelterList';
+import { SearchBox } from '@mapbox/search-js-react';
+import { RefreshCw } from 'lucide-react';
 
 function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Radius of the Earth in km
@@ -14,157 +15,93 @@ function getDistance(lat1, lon1, lat2, lon2) {
   return R * c; 
 }
 
-const mapTomTomData = (poiData) => {
-  const distKm = poiData.dist ? (poiData.dist / 1000) : 0;
-  let openNow = true;
-  if (poiData.poi && poiData.poi.openingHours && typeof poiData.poi.openingHours.isOpen === 'boolean') {
-    openNow = poiData.poi.openingHours.isOpen;
-  }
-  
+const mapMapboxData = (feature, userLat, userLng) => {
+  const fLat = feature.properties?.coordinates?.latitude ?? feature.geometry.coordinates[1];
+  const fLng = feature.properties?.coordinates?.longitude ?? feature.geometry.coordinates[0];
+  const dist = (userLat && userLng) ? getDistance(userLat, userLng, fLat, fLng) : 0;
+
   return {
-     id: poiData.id,
-     name: poiData.poi?.name || 'Animal Shelter',
-     phone: poiData.poi?.phone || null,
-     address: poiData.address?.freeformAddress || null,
-     municipality: poiData.address?.municipality || poiData.address?.localName || null,
-     lat: poiData.position?.lat,
-     lng: poiData.position?.lon,
-     distance: distKm,
+     id: feature.properties.mapbox_id,
+     name: feature.properties.name || feature.properties.place_name || 'Animal Shelter',
+     phone: feature.properties.telephone || feature.properties.metadata?.phone || null,
+     address: feature.properties.full_address || feature.properties.place_name || null,
+     municipality: feature.properties.context?.locality?.name || feature.properties.context?.place?.name || null,
+     lat: fLat,
+     lng: fLng,
+     distance: dist,
      specialties: [],
-     isOpen: openNow,
+     isOpen: true,
      is247: false
   };
 };
 
-const ShelterLocator = ({ searchQuery = "" }) => {
-  const [userLoc, setUserLoc] = useState({ lat: 19.0760, lng: 72.8777 }); 
+const ShelterLocator = () => {
   const [shelters, setShelters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [visibleCount, setVisibleCount] = useState(10);
-  
-  const abortControllerRef = useRef(null);
-  const debounceTimerRef = useRef(null);
+  const [userLoc, setUserLoc] = useState({ lat: 19.0760, lng: 72.8777 });
 
-  const triggerFetch = (lat, lng, source) => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-        fetchLocalShelters(lat, lng, source);
-    }, 500);
-  };
-
-  const fetchLocalShelters = async (lat, lng, source = "Initial Page Load") => {
+  const fetchInitialShelters = async (lat, lng) => {
     setLoading(true);
     setErrorMsg('');
-    setVisibleCount(10);
-    
-    // Request Deduplication
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-    const { signal } = abortControllerRef.current;
-
     try {
-      // Caching Layer
-      const geoKey = geohash.encode(lat, lng, 5); 
-      const cacheKey = `petconnect_shelters_cache_${geoKey}_${searchQuery}`;
-      const cachedData = sessionStorage.getItem(cacheKey);
+      const accessToken = "pk.eyJ1IjoibWl0YWxpbWVvdyIsImEiOiJjbW5wa3JwbG0xNjBxMnFwbHB4emVtaHFrIn0.Gd1xvYQpeZYXjajCZT00eQ";
+      const targetUrl = `https://api.mapbox.com/search/searchbox/v1/forward?q=animal shelter&proximity=${lng},${lat}&access_token=${accessToken}`;
+      const res = await fetch(targetUrl);
+      if (!res.ok) throw new Error("API failed");
+      const data = await res.json();
       
-      if (cachedData && !searchQuery) {
-        const activeShelters = JSON.parse(cachedData).map(c => ({
-            ...c,
-            distance: getDistance(lat, lng, c.lat, c.lng)
-        })).sort((a,b) => a.distance - b.distance);
-        
-        setShelters(activeShelters);
-        setLoading(false);
-        return; 
-      }
-
-      const API_KEY = import.meta.env.VITE_TOMTOM_API_KEY;
-      if (!API_KEY) throw new Error("Missing VITE_TOMTOM_API_KEY");
-      
-      const fetchWithRadius = async (radius) => {
-        const queryTerm = searchQuery || 'animal shelter';
-        const finalRadius = searchQuery ? 100000 : radius; 
-        // We use poiSearch and omit the veterinary category Set (9375) so it defaults to finding shelters
-        const targetUrl = `https://api.tomtom.com/search/2/poiSearch/${encodeURIComponent(queryTerm)}.json?key=${API_KEY}&lat=${lat}&lon=${lng}&radius=${finalRadius}`;
-
-        const executeFetchWithBackoff = async (retries = 3, delay = 1000) => {
-          try {
-            const res = await fetch(targetUrl, { method: 'GET', signal });
-            if (res.status === 429 && retries > 0) {
-              await new Promise(r => setTimeout(r, delay));
-              return executeFetchWithBackoff(retries - 1, delay * 2); 
-            }
-            if (!res.ok) throw new Error(`API failed. Status: ${res.status}`);
-            return res;
-          } catch (err) {
-            if (err.name === 'AbortError') throw err; 
-            if (retries > 0) {
-              await new Promise(r => setTimeout(r, delay));
-              return executeFetchWithBackoff(retries - 1, delay * 2);
-            }
-            throw err;
-          }
-        };
-
-        const res = await executeFetchWithBackoff();
-        return await res.json();
-      };
-
-      let data = await fetchWithRadius(25000); // 25km radius for shelters since they are sparser
-
-      if (!data.results || data.results.length === 0) {
-        setErrorMsg("No verified shelters found in your immediate area.");
-        setShelters([]);
-      } else {
-        const realShelters = data.results.map(mapTomTomData);
+      if (data.features && data.features.length > 0) {
+        const realShelters = data.features.map(f => mapMapboxData(f, lat, lng));
         realShelters.sort((a,b) => a.distance - b.distance);
-        
-        if (!searchQuery) sessionStorage.setItem(cacheKey, JSON.stringify(realShelters));
         setShelters(realShelters);
-      }
-    } catch(err) {
-      if (err.name === 'AbortError') return;
-      console.error(err);
-      if (err.message === "Missing VITE_TOMTOM_API_KEY") {
-        setErrorMsg('Invalid API Key Detected - Please check .env formatting.');
       } else {
-        setErrorMsg(`We're having trouble reaching the shelter database.`);
+        setErrorMsg("No shelters found nearby.");
       }
-      setShelters([]);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("We're having trouble reaching the shelter database.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setUserLoc(loc);
-          triggerFetch(loc.lat, loc.lng, "Geolocation Success");
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setUserLoc({ lat, lng });
+          fetchInitialShelters(lat, lng);
         },
         (err) => {
-          triggerFetch(userLoc.lat, userLoc.lng, "Geolocation Fallback");
+          setUserLoc({ lat: 19.0760, lng: 72.8777 });
+          fetchInitialShelters(19.0760, 72.8777);
         }
       );
     } else {
-      triggerFetch(userLoc.lat, userLoc.lng, "Geolocation Unsupported");
+      setUserLoc({ lat: 19.0760, lng: 72.8777 });
+      fetchInitialShelters(19.0760, 72.8777);
     }
+  }, []);
 
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-      if (abortControllerRef.current) abortControllerRef.current.abort();
-    };
-  }, [searchQuery]); // Run fetch on searchQuery changes too!
+  const handleRetrieve = (res) => {
+    if (res && res.features && res.features.length > 0) {
+      const feature = res.features[0];
+      const newShelter = mapMapboxData(feature, userLoc.lat, userLoc.lng);
+      setShelters(prev => {
+        const filtered = prev.filter(c => c.id !== newShelter.id);
+        return [newShelter, ...filtered];
+      });
+      setVisibleCount(10);
+      console.log("Shelter found at:", feature.geometry.coordinates);
+    }
+  };
 
-  const filtered = shelters.filter(c => (c.name.toLowerCase().includes(searchQuery?.toLowerCase() || '')));
-  const visibleShelters = filtered.slice(0, visibleCount);
-  const hasMore = visibleCount < filtered.length;
+  const visibleShelters = shelters.slice(0, visibleCount);
+  const hasMore = visibleCount < shelters.length;
 
   return (
     <div className="flex flex-col w-full h-full min-h-[400px]">
@@ -174,6 +111,38 @@ const ShelterLocator = ({ searchQuery = "" }) => {
           {errorMsg}
         </div>
       )}
+
+      <div className="mb-6 flex items-center gap-2">
+        <div className="relative flex-1 rounded-2xl bg-white border border-gray-100 shadow-sm p-2">
+          <SearchBox
+            accessToken="pk.eyJ1IjoibWl0YWxpbWVvdyIsImEiOiJjbW5wa3JwbG0xNjBxMnFwbHB4emVtaHFrIn0.Gd1xvYQpeZYXjajCZT00eQ"
+            options={{
+              language: 'en',
+              country: 'IN'
+            }}
+            popoverOptions={{
+              placement: 'bottom-start'
+            }}
+            onRetrieve={handleRetrieve}
+            theme={{
+              variables: {
+                fontFamily: 'inherit',
+                unit: '16px',
+                padding: '0.75em 1em',
+                borderRadius: '1rem',
+                boxShadow: 'none',
+              }
+            }}
+          />
+        </div>
+        <button
+          onClick={() => fetchInitialShelters(userLoc.lat, userLoc.lng)}
+          title="Refresh locations"
+          className="p-3 bg-white border border-gray-200 text-gray-700 rounded-2xl hover:bg-gray-50 hover:text-green-600 transition-all shadow-sm active:scale-95 flex items-center justify-center h-[58px]"
+        >
+          <RefreshCw size={22} className={loading ? "animate-spin" : ""} />
+        </button>
+      </div>
 
       <ShelterList 
         shelters={visibleShelters} 

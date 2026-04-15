@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Phone, MapPin, Globe, Clock } from 'lucide-react';
-import geohash from 'ngeohash';
+import React, { useState } from 'react';
+import { Phone, MapPin, Globe, Clock, Search, RefreshCw } from 'lucide-react';
 import ClinicList from '../components/helpline/ClinicList';
+import { SearchBox } from '@mapbox/search-js-react';
 
 function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Radius of the Earth in km
@@ -15,200 +15,103 @@ function getDistance(lat1, lon1, lat2, lon2) {
   return R * c; 
 }
 
-// 2. Data Mapping: Map TomTom API response to Clinic UI
-const mapTomTomData = (poiData) => {
-  // Convert dist from meters provided by TomTom, fallback to calculating if missing
-  const distKm = poiData.dist ? (poiData.dist / 1000) : 0;
-  
-  // TomTom specific open/close logic from openingHours
-  let openNow = true;
-  if (poiData.poi && poiData.poi.openingHours && typeof poiData.poi.openingHours.isOpen === 'boolean') {
-    openNow = poiData.poi.openingHours.isOpen;
-  }
-  
-  // Extract categories dynamically
-  const specialList = poiData.poi?.categories 
-        ? poiData.poi.categories.filter(c => c !== "veterinarian") 
-        : ["General Care"];
-  
+const mapMapboxData = (feature, userLat, userLng) => {
+  const fLat = feature.properties?.coordinates?.latitude ?? feature.geometry.coordinates[1];
+  const fLng = feature.properties?.coordinates?.longitude ?? feature.geometry.coordinates[0];
+  const dist = (userLat && userLng) ? getDistance(userLat, userLng, fLat, fLng) : 0;
+
   return {
-     id: poiData.id,
-     name: poiData.poi?.name || 'Veterinary Clinic',
-     phone: poiData.poi?.phone || null,
-     address: poiData.address?.freeformAddress || null,
-     municipality: poiData.address?.municipality || poiData.address?.localName || null,
-     lat: poiData.position?.lat,
-     lng: poiData.position?.lon,
-     distance: distKm,
-     specialties: specialList.length > 0 ? specialList : ["General Care"],
-     isOpen: openNow,
+     id: feature.properties.mapbox_id,
+     name: feature.properties.name || feature.properties.place_name || 'Veterinary Clinic',
+     phone: feature.properties.telephone || feature.properties.metadata?.phone || null,
+     address: feature.properties.full_address || feature.properties.place_name || null,
+     municipality: feature.properties.context?.locality?.name || feature.properties.context?.place?.name || null,
+     lat: fLat,
+     lng: fLng,
+     distance: dist,
+     specialties: feature.properties.poi_category ? [feature.properties.poi_category[0]] : ["General Care"],
+     isOpen: true,
      is247: false
   };
 };
 
 const Helpline = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [userLoc, setUserLoc] = useState({ lat: 19.0760, lng: 72.8777 }); 
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
-
-
   const [visibleCount, setVisibleCount] = useState(10);
-  const [isExpanding, setIsExpanding] = useState(false);
+  const [userLoc, setUserLoc] = useState({ lat: 19.0760, lng: 72.8777 });
 
-  const abortControllerRef = useRef(null);
-  const debounceTimerRef = useRef(null);
-
-  // Implement Debouncing: 500ms wrapper for API triggering
-  const triggerFetch = (lat, lng, source) => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-        fetchLocalClinics(lat, lng, source);
-    }, 500);
-  };
-
-  // 1. Fetching Logic with Diagnostics, Session Caching, Deduplication, and Exponential Backoff
-  const fetchLocalClinics = async (lat, lng, source = "Initial Page Load") => {
+  const fetchInitialClinics = async (lat, lng) => {
     setLoading(true);
-    setIsExpanding(false);
     setErrorMsg('');
-    setVisibleCount(10);
-    
-    console.group(`Helpline Diagnostics: ${source}`);
-    const startTime = performance.now();
-
-    // Request Deduplication: Cancel older inflight active requests
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-    const { signal } = abortControllerRef.current;
-
     try {
-      // --- Caching Layer: Geohash tied to SessionStorage ---
-      const geoKey = geohash.encode(lat, lng, 5); 
-      const cacheKey = `petconnect_helpline_cache_${geoKey}_${searchQuery}`;
-      const cachedData = sessionStorage.getItem(cacheKey);
+      const accessToken = "pk.eyJ1IjoibWl0YWxpbWVvdyIsImEiOiJjbW5wa3JwbG0xNjBxMnFwbHB4emVtaHFrIn0.Gd1xvYQpeZYXjajCZT00eQ";
+      const targetUrl = `https://api.mapbox.com/search/searchbox/v1/forward?q=veterinary&proximity=${lng},${lat}&access_token=${accessToken}`;
+      const res = await fetch(targetUrl);
+      if (!res.ok) throw new Error("API failed");
+      const data = await res.json();
       
-      if (cachedData && !searchQuery) {
-        console.log(`[Diagnostic] Valid Local Cache Found!`);
-        const activeClinics = JSON.parse(cachedData).map(c => ({
-            ...c,
-            distance: getDistance(lat, lng, c.lat, c.lng)
-        })).sort((a,b) => a.distance - b.distance);
-        
-        setClinics(activeClinics);
-        setLoading(false);
-        console.groupEnd();
-        return; 
-      }
-
-      const API_KEY = import.meta.env.VITE_TOMTOM_API_KEY;
-      if (!API_KEY) throw new Error("Missing VITE_TOMTOM_API_KEY");
-      
-      if (API_KEY.includes('...') || API_KEY.length < 20) {
-        throw new Error("VITE_TOMTOM_API_KEY_FORMAT_INVALID");
-      }
-
-      const fetchWithRadius = async (radius) => {
-        const queryTerm = searchQuery || 'veterinarian';
-        // If name search, use huge radius or no radius (TomTom categorySearch needs radius or it defaults)
-        const finalRadius = searchQuery ? 100000 : radius; 
-        const targetUrl = `https://api.tomtom.com/search/2/categorySearch/${encodeURIComponent(queryTerm)}.json?key=${API_KEY}&lat=${lat}&lon=${lng}&radius=${finalRadius}&categorySet=9375`;
-
-        const executeFetchWithBackoff = async (retries = 3, delay = 1000) => {
-          try {
-            const res = await fetch(targetUrl, { method: 'GET', signal });
-            if (res.status === 429 && retries > 0) {
-              setErrorMsg("High Traffic - Retrying...");
-              await new Promise(r => setTimeout(r, delay));
-              return executeFetchWithBackoff(retries - 1, delay * 2); 
-            }
-            if (!res.ok) {
-              if (res.status === 403 || res.status === 400) throw new Error("VITE_TOMTOM_API_KEY_FORMAT_INVALID");
-              throw new Error(`API failed. Status: ${res.status}`);
-            }
-            return res;
-          } catch (err) {
-            if (err.name === 'AbortError') throw err; 
-            if (retries > 0) {
-              await new Promise(r => setTimeout(r, delay));
-              return executeFetchWithBackoff(retries - 1, delay * 2);
-            }
-            throw err;
-          }
-        };
-
-        const res = await executeFetchWithBackoff();
-        return await res.json();
-      };
-
-      // strictly 15km search per latest request
-      let data = await fetchWithRadius(15000);
-
-      if (!data.results || data.results.length === 0) {
-        setErrorMsg("No verified clinics found in your immediate area. Please call our central helpline.");
-        setClinics([]);
-      } else {
-        const realClinics = data.results.map(mapTomTomData);
+      if (data.features && data.features.length > 0) {
+        const realClinics = data.features.map(f => mapMapboxData(f, lat, lng));
         realClinics.sort((a,b) => a.distance - b.distance);
-        
-        if (!searchQuery) sessionStorage.setItem(cacheKey, JSON.stringify(realClinics));
         setClinics(realClinics);
-      }
-    } catch(err) {
-      if (err.name === 'AbortError') return;
-      console.error("[Diagnostic] Fatal Error:", err);
-      if (err.message === "VITE_TOMTOM_API_KEY_FORMAT_INVALID") {
-        setErrorMsg('Invalid API Key Detected - Please check .env formatting.');
       } else {
-        setErrorMsg(`We're having trouble reaching the clinic database. Please try again later.`);
+        setErrorMsg("No clinics found matching your criteria.");
       }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("We're having trouble reaching the clinic database.");
     } finally {
-      console.groupEnd();
       setLoading(false);
-      setIsExpanding(false);
     }
   };
 
-  useEffect(() => {
-    // Component Mount execution
+  React.useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setUserLoc(loc);
-          triggerFetch(loc.lat, loc.lng, "Geolocation Success");
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setUserLoc({ lat, lng });
+          fetchInitialClinics(lat, lng);
+
+          // Background sync to backend for distance calculations
+          const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+          fetch(`${API_BASE}/api/profile/location`, {
+             method: 'PATCH',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ lat, lng }),
+             credentials: 'include'
+          }).catch(err => console.log('Location sync failed silently', err));
         },
         (err) => {
           console.warn("Geolocation denied. Using fallback mapping zones (Mumbai).", err);
-          setErrorMsg(''); 
-          triggerFetch(userLoc.lat, userLoc.lng, "Geolocation Fallback");
+          setUserLoc({ lat: 19.0760, lng: 72.8777 });
+          fetchInitialClinics(19.0760, 72.8777); // Mumbai fallback
         }
       );
     } else {
-      triggerFetch(userLoc.lat, userLoc.lng, "Geolocation Unsupported");
+      setUserLoc({ lat: 19.0760, lng: 72.8777 });
+      fetchInitialClinics(19.0760, 72.8777);
     }
-
-    // Cleanup aborts to prevent ghost state updates on unmount
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-      if (abortControllerRef.current) abortControllerRef.current.abort();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filteredClinics = (clinics || [])
-    .filter(c => {
-      const search = (searchQuery || '').toLowerCase();
-      const nameMatch = c?.name?.toLowerCase().includes(search);
-      const specialtyMatch = Array.isArray(c?.specialties) && c.specialties.some(s => s?.toLowerCase().includes(search));
-      return nameMatch || specialtyMatch;
-    });
+  const handleRetrieve = (res) => {
+    if (res && res.features && res.features.length > 0) {
+      const feature = res.features[0];
+      const newClinic = mapMapboxData(feature, userLoc.lat, userLoc.lng);
+      setClinics(prev => {
+        const filtered = prev.filter(c => c.id !== newClinic.id);
+        return [newClinic, ...filtered];
+      });
+      setVisibleCount(10);
+      console.log("Clinic found at:", feature.geometry.coordinates);
+    }
+  };
 
-  const visibleClinics = filteredClinics.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredClinics.length;
+  const visibleClinics = clinics.slice(0, visibleCount);
+  const hasMore = visibleCount < clinics.length;
 
   return (
     <div className="w-full flex justify-center py-8 px-4 animate-in slide-in-from-bottom-4 duration-500 bg-[#fafafa] min-h-screen">
@@ -220,30 +123,48 @@ const Helpline = () => {
             Emergency <span className="text-green-600">Helpline</span>
           </h1>
           <p className="text-gray-500 font-medium text-sm lg:text-base opacity-80">
-            Real-time geospatial tracking for verified veterinary clinics expanding up to 15km.
+            Connect with nearby veterinary clinics.
           </p>
         </div>
 
-        {/* Sticky Search and Filter Bar */}
+        {/* Search */}
         <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md pt-2 pb-6 border-b border-gray-50 -mx-4 px-4 mb-4">
           <div className="flex flex-col gap-4">
-            <div className="relative w-full">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input 
-                 type="text" 
-                 placeholder="Search clinics, specialties..."
-                 className="w-full pl-14 pr-6 py-3.5 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500/20 border border-gray-100 font-bold placeholder-gray-400 transition-all text-lg text-gray-800"
-                 value={searchQuery}
-                 onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 rounded-2xl bg-white border border-gray-100 shadow-sm p-1">
+                <SearchBox
+                  accessToken="pk.eyJ1IjoibWl0YWxpbWVvdyIsImEiOiJjbW5wa3JwbG0xNjBxMnFwbHB4emVtaHFrIn0.Gd1xvYQpeZYXjajCZT00eQ"
+                  options={{
+                    language: 'en',
+                    country: 'IN'
+                  }}
+                  popoverOptions={{
+                    placement: 'bottom-start'
+                  }}
+                  onRetrieve={handleRetrieve}
+                  theme={{
+                    variables: {
+                      fontFamily: 'inherit',
+                      unit: '18px',
+                      padding: '0.75em 1em 0.75em 1em',
+                      borderRadius: '1rem',
+                      boxShadow: 'none',
+                    }
+                  }}
+                />
+              </div>
+              <button
+                onClick={() => fetchInitialClinics(userLoc.lat, userLoc.lng)}
+                title="Refresh locations"
+                className="p-3 bg-white border border-gray-200 text-gray-700 rounded-2xl hover:bg-gray-50 hover:text-green-600 transition-all shadow-sm active:scale-95 flex items-center justify-center h-[58px]"
+              >
+                <RefreshCw size={22} className={loading ? "animate-spin" : ""} />
+              </button>
             </div>
-            
-
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-
 
           {errorMsg && (
             <div className="mb-6 bg-amber-50 text-amber-700 px-4 py-3 border border-amber-100 rounded-2xl text-[14px] font-bold shadow-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2">

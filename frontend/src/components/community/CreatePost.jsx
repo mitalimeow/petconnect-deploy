@@ -54,12 +54,13 @@ export default function CreatePost({ onPostCreated }) {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/posts', {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_BASE}/api/posts`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ content, imageUrl })
       });
       

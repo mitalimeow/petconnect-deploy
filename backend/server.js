@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
@@ -17,16 +18,19 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/profile', require('./routes/profileRoutes'));
-app.use('/api/friends', require('./routes/friendRoutes')); 
+app.use('/api', require('./routes/friendshipRoutes')); 
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/pets', require('./routes/petRoutes'));
 app.use('/api/education', require('./routes/educationRoutes'));
+app.use('/api/adoption', require('./routes/adoptionRoutes'));
+app.use('/api/lost', require('./routes/lostPetRoutes'));
 
 // Root Route for API Health Check
 app.get('/', (req, res) => {
@@ -43,11 +47,19 @@ app.get('/api/user/me', require('./middleware/auth'), async (req, res) => {
     ]);
     
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ name: user.name });
+    res.json({ 
+      id: user._id,
+      username: user.username,
+      name: user.name,
+      profilePhoto: user.profilePhoto,
+      googlePhoto: user.googlePhoto,
+      email: user.email,
+      tags: user.tags
+    });
   } catch (error) {
     // Prevent browser console 500 errors if MongoDB is offline by returning a 200 fallback
     res.json({ name: 'Guest', offlineFallback: true });
   }
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}... Restarted!`));

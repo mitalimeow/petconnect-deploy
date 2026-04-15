@@ -12,13 +12,26 @@ const CATEGORIES = [
 ];
 
 const DATA_MAP = {
-  type: ['Cats', 'Dogs', 'Fish', 'Birds', 'Others'],
+  type: ['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Turtle', 'Hamster', 'Guinea Pig', 'Others'],
   color: ['White', 'Black', 'Brown', 'Golden', 'Mixed', 'Others'],
   ownerType: ['Independent', 'Shelter', 'Ethical Breeder'],
   location: [
-    "Ahmedabad", "Bangalore", "Bhopal", "Chennai", "Delhi", "Hyderabad", 
-    "Indore", "Jaipur", "Kanpur", "Kolkata", "Lucknow", "Mumbai", 
-    "Nagpur", "Patna", "Pune", "Thane", "Vadodara", "Visakhapatnam"
+    "Agartala", "Agra", "Ahmedabad", "Aizawl", "Ajmer", "Aligarh", "Allahabad (Prayagraj)", 
+    "Ambala", "Amravati", "Amritsar", "Anand", "Anantapur", "Asansol", "Aurangabad", "Bareilly", 
+    "Belgaum", "Bengaluru", "Bhagalpur", "Bharatpur", "Bhavnagar", "Bhilai", "Bhopal", 
+    "Bhubaneswar", "Bikaner", "Bilaspur", "Bokaro", "Chandigarh", "Chennai", "Coimbatore", 
+    "Cuttack", "Dehradun", "Delhi", "Dhanbad", "Dibrugarh", "Dimapur", "Durgapur", "Erode", 
+    "Faridabad", "Firozabad", "Gandhinagar", "Ghaziabad", "Gorakhpur", "Guntur", "Gurgaon (Gurugram)", 
+    "Guwahati", "Gwalior", "Haldia", "Haridwar", "Hisar", "Hosur", "Hubli-Dharwad", "Hyderabad", 
+    "Imphal", "Indore", "Itanagar", "Jabalpur", "Jaipur", "Jalandhar", "Jammu", "Jamnagar", 
+    "Jamshedpur", "Jhansi", "Jodhpur", "Junagadh", "Kakinada", "Kannur", "Kanpur", "Karnal", 
+    "Kochi", "Kolhapur", "Kolkata", "Kollam", "Kota", "Kozhikode", "Kurnool", "Lucknow", "Ludhiana", 
+    "Madurai", "Mangalore", "Meerut", "Moradabad", "Mumbai", "Muzaffarpur", "Mysuru", "Nagpur", 
+    "Nanded", "Nashik", "Navi Mumbai", "Noida", "Panaji", "Panipat", "Patiala", "Patna", 
+    "Pimpri-Chinchwad", "Pondicherry (Puducherry)", "Pune", "Raipur", "Rajahmundry", "Rajkot", 
+    "Ranchi", "Rourkela", "Salem", "Sangli", "Shimla", "Siliguri", "Solapur", "Srinagar", "Surat", 
+    "Thane", "Thiruvananthapuram", "Thrissur", "Tiruchirappalli", "Tirunelveli", "Tirupati", 
+    "Udaipur", "Ujjain", "Vadodara", "Varanasi", "Vellore", "Vijayawada", "Visakhapatnam", "Warangal"
   ]
 };
 

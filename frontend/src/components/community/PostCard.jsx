@@ -21,11 +21,10 @@ export default function PostCard({ post }) {
     }
 
     try {
-      await fetch(`http://localhost:5000/api/posts/${post._id}/like`, {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      await fetch(`${API_BASE}/api/posts/${post._id}/like`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        credentials: 'include'
       });
     } catch (err) {
       console.error('Like failed', err);

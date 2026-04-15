@@ -7,62 +7,91 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('petconnect_user');
-    if (storedUser) {
-      const parsed = JSON.parse(storedUser);
-      if (!parsed.tags) parsed.tags = [];
-      if (parsed.email === 'mitalipaullol268@gmail.com' && !parsed.tags.includes('Admin')) parsed.tags.push('Admin');
-      return parsed;
-    }
-    return null;
+    const savedUser = localStorage.getItem('petconnect_user');
+    return savedUser ? JSON.parse(savedUser) : null;
   });
-  // Inside AuthProvider immediately after state initialization:
+  const [loading, setLoading] = useState(true);
+
+  // MongoDB Silent Auto-Sync on Boot (Fallback with LocalStorage)
   useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === null || e.key === 'petconnect_user') {
-        const stored = localStorage.getItem('petconnect_user');
-        if (!stored) {
-          setUser(null);
-          if (window.location.pathname !== '/') {
-            window.location.href = '/';
-          }
+
+    const syncWithMongo = async () => {
+      try {
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const res = await fetch(`${API_BASE}/api/user/me`, {
+           credentials: 'include'
+        });
+        
+        if (res.ok) {
+           const mongoData = await res.json();
+           if (!mongoData.offlineFallback) {
+              setUser(mongoData);
+              localStorage.setItem('petconnect_user', JSON.stringify(mongoData));
+           } else {
+              setUser(null);
+              localStorage.removeItem('petconnect_user');
+           }
         } else {
-          try {
-            const parsed = JSON.parse(stored);
-            setUser(parsed);
-          } catch (err) {
-            console.error('Failed to sync auth state', err);
-          }
+           setUser(null);
+           localStorage.removeItem('petconnect_user');
         }
+      } catch (err) {
+        console.log("Could not hit backend for secure sync.", err);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
     };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    
+    syncWithMongo();
   }, []);
-  const login = (userData) => {
-    // Simulated Google Login Auth
-    setUser(userData);
-    localStorage.setItem('petconnect_user', JSON.stringify(userData));
+
+  const login = async () => {
+    // Under Cookie architecture, Google Auth response just sets the cookie.
+    // We fetch /api/user/me to establish state securely!
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_BASE}/api/user/me`, {
+         credentials: 'include'
+      });
+      if (res.ok) {
+         const mongoData = await res.json();
+         if (!mongoData.offlineFallback) {
+            setUser(mongoData);
+            localStorage.setItem('petconnect_user', JSON.stringify(mongoData));
+            return mongoData;
+         }
+      }
+    } catch(err) { console.error("Login verification failed", err); }
+    return null;
   };
 
   const updateUser = (updates) => {
     setUser(prev => {
-      const updatedUser = { ...prev, ...updates };
-      localStorage.setItem('petconnect_user', JSON.stringify(updatedUser));
-      return updatedUser;
+      if (prev) {
+        const updated = { ...prev, ...updates };
+        localStorage.setItem('petconnect_user', JSON.stringify(updated));
+        return updated;
+      }
+      return null;
     });
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.clear();
-    window.location.href = '/';
+  const logout = async () => {
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+      setUser(null);
+      localStorage.clear(); // Total eradication of any lingering legacy bits
+      window.location.href = '/';
+    } catch(err) {
+      console.error(err);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
-      {children}
+    <AuthContext.Provider value={{ user, login, logout, updateUser, loading }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { submitApplication, getPendingApplications, approveApplication } = require('../controllers/applicationController');
+const { submitApplication, getPendingApplications, approveApplication, denyApplication } = require('../controllers/applicationController');
 const auth = require('../middleware/auth');
 const requireAdmin = require('../middleware/requireAdmin');
 
@@ -10,5 +10,6 @@ router.post('/', auth, submitApplication);
 // Admin only paths
 router.get('/admin/pending', auth, requireAdmin, getPendingApplications);
 router.put('/admin/approve/:id', auth, requireAdmin, approveApplication);
+router.put('/admin/deny/:id', auth, requireAdmin, denyApplication);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import TagBadge from '../profile/TagBadge';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
@@ -91,9 +92,18 @@ const UserSearch = () => {
                   </div>
                 )}
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-gray-900 font-bold truncate">{user.name}</span>
-                <span className="text-gray-500 text-sm truncate">@{user.username}</span>
+              <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-gray-900 font-bold whitespace-nowrap shrink-0">{user.name}</span>
+                  {user.tags && user.tags.length > 0 && (
+                    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide py-1 items-center">
+                      {Array.from(new Set(user.tags.map(t => typeof t === 'object' ? t.name : t))).map((tagName, i) => (
+                        <TagBadge key={i} tag={tagName} size="sm" />
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <span className="text-gray-500 text-sm truncate" style={{ marginTop: '-4px' }}>@{user.username}</span>
               </div>
             </div>
           ))}

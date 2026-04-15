@@ -1,13 +1,14 @@
 import React from 'react';
 import ShelterCard from './ShelterCard';
 import { motion, AnimatePresence } from 'motion/react';
+import CardSkeleton from '../common/CardSkeleton';
 
 const ShelterList = ({ shelters, loading, hasMore, onLoadMore }) => {
   if (loading && shelters.length === 0) {
     return (
-      <div className="flex flex-col gap-4 py-10 w-full">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-24 bg-gray-50 rounded-2xl animate-pulse w-full" />
+      <div className="flex flex-col gap-0 py-4 w-full">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <CardSkeleton key={i} variant="horizontal" />
         ))}
       </div>
     );

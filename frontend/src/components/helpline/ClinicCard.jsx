@@ -26,20 +26,18 @@ const ClinicCard = ({ clinic }) => {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 font-medium">
-            <div className="flex items-center gap-4">
-              {municipality && (
-                <div className="flex items-center gap-1.5 text-gray-700 font-bold">
-                  <MapPin size={14} className="text-green-500" />
-                  <span>{municipality}</span>
-                </div>
-              )}
-              {address && (
-                <div className="flex items-center gap-1.5 truncate opacity-70">
-                  <span className="truncate">{address}</span>
-                </div>
-              )}
-            </div>
+          <div className="flex items-center gap-x-4 gap-y-2 text-sm text-gray-500 font-medium w-full">
+            {municipality && (
+              <div className="flex flex-shrink-0 items-center gap-1.5 text-gray-700 font-bold">
+                <MapPin size={14} className="text-green-500" />
+                <span>{municipality}</span>
+              </div>
+            )}
+            {address && (
+              <div className="flex flex-1 min-w-0 items-center gap-1.5 opacity-70">
+                <span className="truncate w-full">{address}</span>
+              </div>
+            )}
           </div>
         </div>
 

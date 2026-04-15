@@ -4,7 +4,7 @@ export const articles = [
     title: "How to Tell if a Cat Is Neutered",
     author: "Dr. Emily Carter",
     date: "March 2026",
-    image: "/education/cat_neutered_hero_1774596947102.png",
+    image: "/education-assets/cat_neutered_hero_1774596947102.png",
     excerpt: "Learn the physical and behavioral signs that indicate whether your male or female cat has been spayed or neutered.",
     content: `
       <h2>Physical Signs in Male Cats</h2>
@@ -30,7 +30,7 @@ export const articles = [
     title: "13 Signs Your Dog Is Happy",
     author: "Dr. Michael Torres",
     date: "March 2026",
-    image: "/education/happy_dog_hero_1774596987706.png",
+    image: "/education-assets/happy_dog_hero_1774596987706.png",
     excerpt: "Learn how to read your dog's body language and recognize true happiness.",
     content: `
       <h2>1. The Full-Body Wag</h2>
@@ -75,7 +75,7 @@ export const articles = [
     title: "Basic Pet Nutrition Guide",
     author: "Dr. Sarah Patel",
     date: "March 2026",
-    image: "/education/pet_nutrition_hero_1774597007758.png",
+    image: "/education-assets/pet_nutrition_hero_1774597007758.png",
     excerpt: "Understand what makes a balanced diet for dogs and cats according to AAFCO standards.",
     content: `
       <h2>The Building Blocks of a Healthy Diet</h2>
@@ -109,7 +109,7 @@ export const articles = [
     title: "How to Adopt a Pet Responsibly",
     author: "Dr. Rachel Kim",
     date: "March 2026",
-    image: "/education/adopt_pet_hero_1774597023425.png",
+    image: "/education-assets/adopt_pet_hero_1774597023425.png",
     excerpt: "A complete guide to making sure your new pet is the right fit for your lifestyle.",
     content: `
       <h2>Assess Your Lifestyle and Finances</h2>
@@ -138,7 +138,7 @@ export const articles = [
     title: "Common Pet Health Issues Every Owner Should Know",
     author: "Dr. James Nguyen",
     date: "March 2026",
-    image: "/education/health_issues_hero_1774597040548.png",
+    image: "/education-assets/health_issues_hero_1774597040548.png",
     excerpt: "Recognize early warning signs of the most frequent health problems in pets.",
     content: `
       <h2>Dental/Periodontal Disease</h2>
@@ -172,7 +172,7 @@ export const articles = [
     title: "First-Time Pet Owner Tips",
     author: "Dr. Anna Lopez",
     date: "March 2026",
-    image: "/education/first_time_owner_hero_1774597059838.png",
+    image: "/education-assets/first_time_owner_hero_1774597059838.png",
     excerpt: "Essential advice to help new pet parents start off on the right paw.",
     content: `
       <h2>1. Pet-Proof Your Home</h2>

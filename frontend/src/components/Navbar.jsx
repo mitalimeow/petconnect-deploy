@@ -1,6 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SidebarMenu from './SidebarMenu';
@@ -8,8 +8,11 @@ import ProfileMenu from './ProfileMenu';
 import NotificationDropdown from './NotificationDropdown';
 import { useGoogleLogin } from '@react-oauth/google';
 
+const DEFAULT_AVATAR = "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png";
+
 const Navbar = () => {
   const { user, login } = useAuth();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -22,16 +25,17 @@ const Navbar = () => {
           headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
         }).then(res => res.json());
         
-        // Pass info to our backend to generate DB-tied JWT
+        // Pass info to our backend to generate DB-tied Cookie Session
         const res = await fetch(`${API_BASE}/api/auth/google`, {
            method: 'POST',
            headers: { 'Content-Type': 'application/json' },
+           credentials: 'include',
            body: JSON.stringify({ userInfo })
         });
         
         if (res.ok) {
-           const data = await res.json();
-           login({ ...data.user, token: data.token, avatar: userInfo.picture });
+           await login(); // AuthContext will independently fetch the profile
+           navigate('/dashboard');
         } else {
            console.error("Backend login sync failed");
            alert("Login failed: The backend server rejected the login.");
@@ -101,7 +105,12 @@ const Navbar = () => {
               }}
               className="w-10 h-10 rounded-full border-2 border-pastel-blue overflow-hidden hover:scale-105 transition-transform relative z-10"
             >
-              <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+              <img 
+                src={user.profilePhoto || DEFAULT_AVATAR} 
+                alt="Profile" 
+                className="w-full h-full object-cover" 
+                referrerPolicy="no-referrer"
+              />
             </button>
 
             {/* Dropdowns */}

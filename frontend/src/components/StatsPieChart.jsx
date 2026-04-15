@@ -12,10 +12,18 @@ const StatsPieChart = () => {
   return (
     <div className="w-full max-w-6xl mx-auto px-4 md:px-12 mb-16 mt-8">
       
-      {/* Title */}
-      <h2 className="text-center md:text-left text-[28px] md:text-3xl font-poppins font-semibold text-[#2D3748] mb-8">
-        Animals Adopted Last Year
-      </h2>
+      {/* Title & Subtitle */}
+      <div className="mb-8 text-center md:text-left">
+        <h2 
+          className="text-4xl md:text-[46px] font-bold tracking-tighter leading-none"
+          style={{ fontFamily: "'Rowdies', cursive", textTransform: 'uppercase', color: '#6e2626' }}
+        >
+          ANIMALS ADOPTED LAST YEAR
+        </h2>
+        <p className="mt-4 text-xl md:text-3xl leading-snug" style={{ fontFamily: "'Dekko', cursive", color: '#5e4141' }}>
+          A visual breakdown of the incredible impact our community made in finding forever homes.
+        </p>
+      </div>
 
       {/* Container */}
       <div className="bg-white/80 rounded-3xl p-8 md:p-12 border border-border/50 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05),0_4px_6px_-2px_rgba(0,0,0,0.05)] backdrop-blur-md">

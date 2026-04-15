@@ -4,22 +4,6 @@ import { X, CheckCircle, UploadCloud, Loader2, AlertCircle } from 'lucide-react'
 import Select from 'react-select';
 import { useAuth } from '../../context/AuthContext';
 
-// Firebase
-import { initializeApp } from "firebase/app";
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-
-// Firebase initialization mapping directly from prompt constraint
-const firebaseConfig = {
-  apiKey: "AIzaSyBdWNhDkVvY6X0Z9823YhZ2qBW8Hs57eKM",
-  authDomain: "petconnect-491321.firebaseapp.com",
-  projectId: "petconnect-491321",
-  storageBucket: "petconnect-491321.firebasestorage.app",
-  messagingSenderId: "218392211032",
-  appId: "1:218392211032:web:0e8d60605afe55b021242d"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
 const TAGS = [
   { name: "Volunteer" },
   { name: "Pet Owner" }, 
@@ -29,9 +13,22 @@ const TAGS = [
 ];
 
 const INDIAN_CITIES = [
-  "Ahmedabad", "Bangalore", "Bhopal", "Chennai", "Delhi", "Hyderabad", 
-  "Indore", "Jaipur", "Kanpur", "Kolkata", "Lucknow", "Mumbai", 
-  "Nagpur", "Patna", "Pune", "Thane", "Vadodara", "Visakhapatnam"
+  "Agartala", "Agra", "Ahmedabad", "Aizawl", "Ajmer", "Aligarh", "Allahabad (Prayagraj)", 
+  "Ambala", "Amravati", "Amritsar", "Anand", "Anantapur", "Asansol", "Aurangabad", "Bareilly", 
+  "Belgaum", "Bengaluru", "Bhagalpur", "Bharatpur", "Bhavnagar", "Bhilai", "Bhopal", 
+  "Bhubaneswar", "Bikaner", "Bilaspur", "Bokaro", "Chandigarh", "Chennai", "Coimbatore", 
+  "Cuttack", "Dehradun", "Delhi", "Dhanbad", "Dibrugarh", "Dimapur", "Durgapur", "Erode", 
+  "Faridabad", "Firozabad", "Gandhinagar", "Ghaziabad", "Gorakhpur", "Guntur", "Gurgaon (Gurugram)", 
+  "Guwahati", "Gwalior", "Haldia", "Haridwar", "Hisar", "Hosur", "Hubli-Dharwad", "Hyderabad", 
+  "Imphal", "Indore", "Itanagar", "Jabalpur", "Jaipur", "Jalandhar", "Jammu", "Jamnagar", 
+  "Jamshedpur", "Jhansi", "Jodhpur", "Junagadh", "Kakinada", "Kannur", "Kanpur", "Karnal", 
+  "Kochi", "Kolhapur", "Kolkata", "Kollam", "Kota", "Kozhikode", "Kurnool", "Lucknow", "Ludhiana", 
+  "Madurai", "Mangalore", "Meerut", "Moradabad", "Mumbai", "Muzaffarpur", "Mysuru", "Nagpur", 
+  "Nanded", "Nashik", "Navi Mumbai", "Noida", "Panaji", "Panipat", "Patiala", "Patna", 
+  "Pimpri-Chinchwad", "Pondicherry (Puducherry)", "Pune", "Raipur", "Rajahmundry", "Rajkot", 
+  "Ranchi", "Rourkela", "Salem", "Sangli", "Shimla", "Siliguri", "Solapur", "Srinagar", "Surat", 
+  "Thane", "Thiruvananthapuram", "Thrissur", "Tiruchirappalli", "Tirunelveli", "Tirupati", 
+  "Udaipur", "Ujjain", "Vadodara", "Varanasi", "Vellore", "Vijayawada", "Visakhapatnam", "Warangal"
 ].map(city => ({ value: city, label: city }));
 
 const DEFAULT_AVATAR = "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png";
@@ -44,13 +41,6 @@ const EditProfileModal = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
     isEmailVisible: false, tags: [], profilePhoto: '', bannerImage: ''
   });
   
-  // OTP states
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpVerified, setOtpVerified] = useState(true); 
-  const [confirmationResult, setConfirmationResult] = useState(null);
-
   // Loading states
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
@@ -78,45 +68,8 @@ const EditProfileModal = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
         profilePhoto: initialData.profilePhoto || '',
         bannerImage: initialData.bannerImage || ''
       });
-      setPhoneNumber(initialData.phone || '');
-      setOtpVerified(true);
     }
   }, [initialData]);
-
-  const setupRecaptcha = () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible'
-      });
-    }
-  };
-
-  const handleSendOtp = async () => {
-    try {
-      setupRecaptcha();
-      const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber}`;
-      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
-      setConfirmationResult(confirmation);
-      setOtpSent(true);
-      showToast("SMS OTP dispatched securely via Firebase!", 'success');
-    } catch (err) {
-      console.error(err);
-      showToast("Failed to send OTP. Ensure the phone number format is correct.", 'error');
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    try {
-      if (!confirmationResult) return;
-      await confirmationResult.confirm(otpCode);
-      setOtpVerified(true);
-      setFormData(prev => ({ ...prev, phone: phoneNumber }));
-      showToast("Phone Verified dynamically via Firebase Auth bindings!", 'success');
-    } catch (err) {
-      console.error(err);
-      showToast("Invalid OTP Code provided", 'error');
-    }
-  };
 
   const handleImageUpload = (file, type) => {
     if (!file) return;
@@ -177,7 +130,6 @@ const EditProfileModal = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
 
   const handleSave = async () => {
     if (!formData.name.trim()) return showToast("Name is a mandatory required field", 'error');
-    if (!otpVerified && phoneNumber !== formData.phone) return showToast("Verify your newly entered phone number via OTP first", 'error');
     
     setIsSaving(true);
     try {
@@ -187,12 +139,10 @@ const EditProfileModal = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
         tags: formData.tags.map(t => t.value)
       };
 
-      const userCache = JSON.parse(localStorage.getItem('petconnect_user') || '{}');
-      const token = userCache.token;
-      
       const res = await fetch(`${API_BASE}/api/profile/update`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload)
       });
       
@@ -200,20 +150,8 @@ const EditProfileModal = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
         // Intercept backend payload instantly
         const backendDoc = await res.json();
         
-        // Universally sync the application local memory without breaking 5MB quotas
-        const currentCache = JSON.parse(localStorage.getItem('petconnect_user') || '{}');
-        currentCache.name = backendDoc.name;
-        currentCache.location = backendDoc.location;
-        currentCache.username = backendDoc.username || currentCache.username;
-        // Optionally cache avatar if it was uploaded (Removed to keep Google PFP in top right)
-        localStorage.setItem('petconnect_user', JSON.stringify(currentCache));
-        
         // Push update to Global React Context so the Navbar live-reloads instantly!
-        updateUser({ 
-           name: backendDoc.name, 
-           location: backendDoc.location,
-           profilePhoto: backendDoc.profilePhoto
-        });
+        updateUser(backendDoc);
 
         // Dispatch React DOM Refresh sequence
         onSaveSuccess();
@@ -262,7 +200,7 @@ const EditProfileModal = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
               <div>
                 <label className="text-sm font-semibold text-gray-600 block mb-3">Profile Picture</label>
                 <div className="flex items-center gap-4">
-                   <img src={formData.profilePhoto || DEFAULT_AVATAR} alt="Avatar" className="w-16 h-16 rounded-full object-cover shadow-sm bg-gray-100 border border-gray-200" />
+                   <img src={formData.profilePhoto || DEFAULT_AVATAR} alt="Avatar" className="w-16 h-16 rounded-full object-cover shadow-sm bg-gray-100 border border-gray-200" referrerPolicy="no-referrer" />
                    <div className="flex flex-col gap-2">
                      <label className="cursor-pointer text-center px-4 py-2.5 bg-pastel-blue/10 text-blue-700 hover:bg-pastel-blue hover:text-white rounded-[12px] text-sm font-bold transition-colors">
                        {isUploadingPhoto ? <Loader2 className="animate-spin inline" size={16}/> : <UploadCloud className="inline mr-2" size={16} />} Update
@@ -325,18 +263,18 @@ const EditProfileModal = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
                 value={formData.tags}
                 onChange={val => setFormData({...formData, tags: val})}
                 className="text-sm text-gray-800"
-                placeholder="Add role tags mapped to the wireframe dictionary..."
+                placeholder="Add role tags..."
               />
             </div>
           </div>
 
-          {/* Contact Verification Blocks */}
+          {/* Contact Blocks */}
           <div className="space-y-4">
             
             {/* Registered Email Line */}
             <div className="bg-gray-50 border border-gray-100 rounded-[16px] p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-sm">
               <div className="w-full">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Registered Root Email (Non-Editable)</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Registered Email (Non-Editable)</label>
                 <input 
                   type="email" 
                   disabled
@@ -358,44 +296,24 @@ const EditProfileModal = ({ isOpen, onClose, initialData, onSaveSuccess }) => {
               </div>
             </div>
 
-            {/* OTP Driven Phone Field */}
+            {/* Direct Phone Field */}
             <div className="bg-white border border-gray-100 rounded-[16px] p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-soft">
               <div className="w-full">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Authenticated Comm-Link</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Comm-Link Phone Number</label>
                 <div className="flex gap-2">
                   <input 
                     type="tel" 
-                    placeholder="Enter phone with +91 code..."
+                    placeholder="Enter phone number..."
                     className="w-full px-4 py-2.5 rounded-[12px] border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pastel-purple shadow-sm transition-all"
-                    value={phoneNumber}
-                    onChange={e => {
-                      setPhoneNumber(e.target.value);
-                      if (e.target.value !== formData.phone) setOtpVerified(false);
-                    }}
+                    value={formData.phone}
+                    onChange={e => setFormData({...formData, phone: e.target.value})}
                   />
-                  {!otpVerified && !otpSent && (
-                    <button onClick={handleSendOtp} className="px-5 py-2.5 bg-pastel-pink text-white rounded-[12px] font-bold shadow-sm hover:scale-105 transition-transform flex items-center gap-2">
-                      Fire OTP
-                    </button>
-                  )}
-                  {otpVerified && phoneNumber === formData.phone && phoneNumber !== '' && (
+                  {formData.phone && (
                     <div className="px-4 py-2 bg-[#f7f5c3] text-gray-800 rounded-[12px] flex items-center gap-2 font-bold whitespace-nowrap border border-[#e4e2a1]">
-                      <CheckCircle size={18} className="text-green-600" /> Signed
+                      <CheckCircle size={18} className="text-green-600" /> Ready
                     </div>
                   )}
                 </div>
-                
-                {otpSent && !otpVerified && (
-                  <div className="mt-3 flex gap-2 animate-in fade-in slide-in-from-top-2">
-                     <input 
-                       type="text" placeholder="Enter OTP sequence..." 
-                       className="w-full px-4 py-2.5 rounded-[12px] border border-pastel-pink focus:outline-none focus:ring-2 focus:ring-pastel-pink shadow-sm"
-                       value={otpCode} onChange={e => setOtpCode(e.target.value)}
-                     />
-                     <button onClick={handleVerifyOtp} className="px-5 py-2.5 bg-black text-white rounded-[12px] font-bold whitespace-nowrap">Check</button>
-                  </div>
-                )}
-                <div id="recaptcha-container" className="mt-2"></div>
               </div>
               
               <div className="flex flex-col items-start sm:items-end shrink-0 sm:pt-6">

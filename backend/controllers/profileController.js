@@ -35,38 +35,58 @@ exports.getProfileById = async (req, res) => {
     const mongoose = require('mongoose');
     const query = mongoose.Types.ObjectId.isValid(targetId) ? { _id: targetId } : { username: targetId };
     
-    const fetchUser = User.findOne(query).select('-__v -password').exec();
-    const user = await Promise.race([
-      fetchUser,
-      new Promise((_, reject) => setTimeout(() => reject(new Error("MongoDB Client Timeout")), 2000))
-    ]);
-      
+    const user = await User.findOne(query)
+      .select('-password -friendRequests')
+      .populate('friends', 'name username profilePhoto tags');
+
     if (!user) {
-      console.log("User not found in DB returning 404!");
-      return res.status(404).json({ message: 'User not found' });
-    }
-    
-    console.log("Frontend Profile Fetched. Name returned:", user.name);
-
-    const isOwner = req.user && req.user.id === user._id.toString();
-    const isFriend = req.user && user.friends.includes(req.user.id);
-
-    const profile = user.toObject();
-    
-    // Privacy logic overrides
-    if (!isOwner) {
-      if (!profile.isPhonePublic && !isFriend) {
-        profile.phone = 'Private (Friends Only)';
-      }
-      if (!profile.isEmailVisible && !isFriend) {
-        profile.email = 'Private (Friends Only)';
-      }
+      return res.status(404).json({ message: 'Profile not found' });
     }
 
-    res.json({ profile, isOwner, isFriend, isSelf: isOwner });
+    let isOwner = false;
+    let isFriend = false;
+    let friendshipStatus = 'none';
+
+    if (req.user) {
+       isOwner = req.user.id === user._id.toString();
+       isFriend = user.friends.some(friend => friend._id.toString() === req.user.id);
+
+       if (isFriend) {
+          friendshipStatus = 'friends';
+       } else if (!isOwner) {
+          const FriendRequest = require('../models/FriendRequest');
+          const sentRequest = await FriendRequest.findOne({ sender: req.user.id, receiver: user._id });
+          if (sentRequest) {
+             friendshipStatus = 'pending_sent';
+          } else {
+             const receivedRequest = await FriendRequest.findOne({ sender: user._id, receiver: req.user.id });
+             if (receivedRequest) {
+                friendshipStatus = 'pending_received';
+             }
+          }
+       }
+    }
+
+    // Apply strict privacy settings natively in the payload
+    const profilePayload = user.toObject();
+    profilePayload.handle = profilePayload.username; // ensure 'handle' is available
+
+    if (!isOwner && !isFriend) {
+       // Only hide if the user requested it via visibility toggles (defensive logic)
+       if (!user.isEmailVisible) profilePayload.email = "Private (Friends Only)";
+       if (!user.isPhonePublic) profilePayload.phone = "Private (Friends Only)";
+    }
+
+    res.json({
+      isOwner,
+      isFriend,
+      friendshipStatus,
+      profile: profilePayload,
+      isSelf: isOwner
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
@@ -74,38 +94,22 @@ exports.updateProfile = async (req, res) => {
   try {
     const allowedUpdates = [
       'name', 'bio', 'location', 'phone', 'tags', 
-      'bannerImage', 'profilePhoto', 'isPhonePublic', 'isEmailVisible'
+      'bannerImage', 'profilePhoto', 'googlePhoto', 'isPhonePublic', 'isEmailVisible'
     ];
     const updates = {};
     for (const key of allowedUpdates) {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     }
-<<<<<<< HEAD
-
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
-      { $set: profileFields },
-      { returnDocument: 'after' }
-    ).select('-password');
-
-    res.json(updatedUser);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-exports.getProfileById = async (req, res) => {
-  try {
-    const isObjectId = req.params.id.match(/^[0-9a-fA-F]{24}$/);
-=======
->>>>>>> 15b211d593306dc6da683dfdb3f0bbaaf475fb88
     
     // Force permanent 'Community Member' explicit default tag
     if (updates.tags && Array.isArray(updates.tags)) {
       if (!updates.tags.includes('Community Member')) {
         updates.tags.push('Community Member');
       }
+      // Schema requires objects for tags, not raw strings
+      updates.tags = updates.tags.map(tagName => {
+        return { name: tagName, color: tagName === 'Admin' ? '#DBB3B1' : '#B5D2CB' };
+      });
     }
     
     const mongoose = require('mongoose');
@@ -125,55 +129,6 @@ exports.getProfileById = async (req, res) => {
       console.log('MongoDB Offline. Mocking profile update.');
       res.json(updates);
     }
-<<<<<<< HEAD
-
-    const user = await User.findOne(query).select('-password -friendRequests');
-    if (!user) {
-      return res.status(404).json({ message: 'Profile not found' });
-    }
-
-    let isOwner = false;
-    let isFriend = false;
-    let friendshipStatus = 'none';
-
-    if (req.user) {
-       isOwner = req.user.id === user._id.toString();
-       isFriend = user.friends.includes(req.user.id);
-
-       if (isFriend) {
-          friendshipStatus = 'friends';
-       } else if (!isOwner) {
-          const FriendRequest = require('../models/FriendRequest');
-          const sentRequest = await FriendRequest.findOne({ sender: req.user.id, receiver: user._id, status: 'pending' });
-          if (sentRequest) {
-             friendshipStatus = 'pending_sent';
-          } else {
-             const receivedRequest = await FriendRequest.findOne({ sender: user._id, receiver: req.user.id, status: 'pending' });
-             if (receivedRequest) {
-                friendshipStatus = 'pending_received';
-             }
-          }
-       }
-    }
-
-    // Apply strict privacy settings natively in the payload
-    const profilePayload = user.toObject();
-    profilePayload.handle = profilePayload.username; // ensure 'handle' is available for exact specifications
-
-    if (!isOwner && !isFriend) {
-       profilePayload.email = "Private";
-       profilePayload.phone = "Private";
-    }
-
-    res.json({
-      isOwner,
-      isFriend,
-      friendshipStatus,
-      profile: profilePayload
-    });
-
-=======
->>>>>>> 15b211d593306dc6da683dfdb3f0bbaaf475fb88
   } catch (err) {
     console.error("PROFILE UPDATE ERROR:", err);
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -182,24 +137,49 @@ exports.getProfileById = async (req, res) => {
 
 exports.searchUsers = async (req, res) => {
   try {
-    const query = req.query.q;
-    if (!query) {
+    const rawQuery = req.query.q;
+    if (!rawQuery || rawQuery.trim().length < 1) {
       return res.json([]);
     }
 
-    const User = require('../models/User');
+    const query = rawQuery.toLowerCase().trim();
+
+    // Flexible Regex Implementation:
+    // This reliably searches both the display name and the unique handle,
+    // working even for older users or updates that bypassed the pre('save') hook.
     const users = await User.find({
       $or: [
         { name: { $regex: query, $options: 'i' } },
         { username: { $regex: query, $options: 'i' } }
       ]
     })
-    .select('_id name username profilePhoto')
+    .select('_id name username profilePhoto tags')
     .limit(10);
 
     res.json(users);
   } catch (err) {
     console.error('Search error:', err);
     res.status(500).json({ message: 'Server error during search' });
+  }
+};
+
+exports.updateTrueLocation = async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    if (lat === undefined || lng === undefined) {
+      return res.status(400).json({ message: 'Missing lat or lng' });
+    }
+
+    await User.findByIdAndUpdate(req.user.id, {
+      trueLocation: {
+        type: 'Point',
+        coordinates: [parseFloat(lng), parseFloat(lat)]
+      }
+    });
+
+    res.json({ message: 'Location securely synced' });
+  } catch (err) {
+    console.error('TrueLocation sync error:', err);
+    res.status(500).json({ message: 'Server error updating location' });
   }
 };

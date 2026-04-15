@@ -1,0 +1,497 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          72.87866418,
+          19.07648426
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "name": "Chaudhari Veterinary Pharmacy",
+        "mapbox_id": "dXJuOm1ieHBvaTo1YmMyNDYzYy05YjNiLTQ5YzMtODE4Yi00MzAyYzM0NDQzNmM",
+        "feature_type": "poi",
+        "address": "BG/3 TARRANUM APTS BHALEKAR WADI ROAD",
+        "full_address": "BG/3 TARRANUM APTS BHALEKAR WADI ROAD, Lal Bahadur Shastri Marg, Mumbai, 400070, India",
+        "place_formatted": "Lal Bahadur Shastri Marg, Mumbai, 400070, India",
+        "context": {
+          "country": {
+            "name": "India",
+            "country_code": "IN",
+            "country_code_alpha_3": "IND"
+          },
+          "postcode": {
+            "id": "dXJuOm1ieHBsYzpBcjVPYXc",
+            "name": "400070"
+          },
+          "place": {
+            "id": "dXJuOm1ieHBsYzpBY0NvYXc",
+            "name": "Mumbai"
+          },
+          "neighborhood": {
+            "id": "dXJuOm1ieHBsYzpCUWtNYXc",
+            "name": "Kismat Nagar"
+          },
+          "street": {
+            "name": "wadi road"
+          }
+        },
+        "coordinates": {
+          "latitude": 19.07648426,
+          "longitude": 72.87866418,
+          "routable_points": [
+            {
+              "name": "POI",
+              "latitude": 19.07652755939685,
+              "longitude": 72.87860793916332
+            }
+          ]
+        },
+        "language": "",
+        "maki": "marker",
+        "poi_category": [
+          "services",
+          "veterinary"
+        ],
+        "poi_category_ids": [
+          "services",
+          "veterinarian"
+        ],
+        "external_ids": {
+          "dataplor": "faaf91c3-49a1-495c-95f8-e4c67dc2c695"
+        },
+        "metadata": {
+          "open_hours": {
+            "periods": [
+              {
+                "open": {
+                  "day": 0,
+                  "time": "0000"
+                }
+              }
+            ],
+            "weekday_text": [
+              "Monday: Open 24 hours",
+              "Tuesday: Open 24 hours",
+              "Wednesday: Open 24 hours",
+              "Thursday: Open 24 hours",
+              "Friday: Open 24 hours",
+              "Saturday: Open 24 hours",
+              "Sunday: Open 24 hours"
+            ]
+          }
+        },
+        "distance": 115
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          72.88018731,
+          19.07239048
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "name": "Vaid Pet Clinic",
+        "mapbox_id": "dXJuOm1ieHBvaTo5NzNmMzIxNC1mNmEwLTQ1ZDMtYjIyNy03MDIwMTEzNjNjMzc",
+        "feature_type": "poi",
+        "address": "Shop no. 5",
+        "full_address": "Shop no. 5, New White House Building.3, Buddha Colony, S.G.Barve marg, Kurla W Sta Rd, Mumbai, 400070, India",
+        "place_formatted": "New White House Building.3, Buddha Colony, S.G.Barve marg, Kurla W Sta Rd, Mumbai, 400070, India",
+        "context": {
+          "country": {
+            "name": "India",
+            "country_code": "IN",
+            "country_code_alpha_3": "IND"
+          },
+          "postcode": {
+            "id": "dXJuOm1ieHBsYzpBcjVPYXc",
+            "name": "400070"
+          },
+          "place": {
+            "id": "dXJuOm1ieHBsYzpBY0NvYXc",
+            "name": "Mumbai"
+          },
+          "neighborhood": {
+            "id": "dXJuOm1ieHBsYzpiZXhy",
+            "name": "Ambedkar Nagar"
+          },
+          "street": {
+            "name": "new white house building.3 buddha colony s.g.barve marg kurla w sta rd"
+          }
+        },
+        "coordinates": {
+          "latitude": 19.07239048,
+          "longitude": 72.88018731,
+          "routable_points": [
+            {
+              "name": "POI",
+              "latitude": 19.072438932262777,
+              "longitude": 72.88005406627737
+            }
+          ]
+        },
+        "language": "",
+        "maki": "marker",
+        "poi_category": [
+          "services",
+          "veterinary"
+        ],
+        "poi_category_ids": [
+          "services",
+          "veterinarian"
+        ],
+        "external_ids": {
+          "dataplor": "ae24fed5-395c-448e-bb98-fb25e6ed095a"
+        },
+        "metadata": {
+          "phone": "+919152909058",
+          "website": "http://9152909058.com/",
+          "open_hours": {
+            "periods": [
+              {
+                "open": {
+                  "day": 1,
+                  "time": "1900"
+                },
+                "close": {
+                  "day": 1,
+                  "time": "2100"
+                }
+              },
+              {
+                "open": {
+                  "day": 2,
+                  "time": "1900"
+                },
+                "close": {
+                  "day": 2,
+                  "time": "2100"
+                }
+              },
+              {
+                "open": {
+                  "day": 3,
+                  "time": "1900"
+                },
+                "close": {
+                  "day": 3,
+                  "time": "2100"
+                }
+              },
+              {
+                "open": {
+                  "day": 4,
+                  "time": "1900"
+                },
+                "close": {
+                  "day": 4,
+                  "time": "2100"
+                }
+              },
+              {
+                "open": {
+                  "day": 5,
+                  "time": "1900"
+                },
+                "close": {
+                  "day": 5,
+                  "time": "2100"
+                }
+              },
+              {
+                "open": {
+                  "day": 6,
+                  "time": "1100"
+                },
+                "close": {
+                  "day": 6,
+                  "time": "2100"
+                }
+              }
+            ]
+          }
+        },
+        "distance": 479
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          72.87885855,
+          19.06893258
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "name": "Raya 2358 Enterprises",
+        "mapbox_id": "dXJuOm1ieHBvaTowNzNiNThlNS02OTg0LTQ3NWYtOTMzMi03MjgzMjVhZjRmNGQ",
+        "feature_type": "poi",
+        "address": "Shop No Alh",
+        "full_address": "Shop No Alh, E, 495, SG Barve Marg, Mumbai, 400070, India",
+        "place_formatted": "E, 495, SG Barve Marg, Mumbai, 400070, India",
+        "context": {
+          "country": {
+            "name": "India",
+            "country_code": "IN",
+            "country_code_alpha_3": "IND"
+          },
+          "postcode": {
+            "id": "dXJuOm1ieHBsYzpBcjVPYXc",
+            "name": "400070"
+          },
+          "place": {
+            "id": "dXJuOm1ieHBsYzpBY0NvYXc",
+            "name": "Mumbai"
+          },
+          "neighborhood": {
+            "id": "dXJuOm1ieHBsYzpBZTdNYXc",
+            "name": "Brahmanwadi"
+          },
+          "street": {
+            "name": "shop no alh"
+          }
+        },
+        "coordinates": {
+          "latitude": 19.06893258,
+          "longitude": 72.87885855,
+          "routable_points": [
+            {
+              "name": "POI",
+              "latitude": 19.06894044489269,
+              "longitude": 72.87876669398919
+            }
+          ]
+        },
+        "language": "",
+        "maki": "marker",
+        "poi_category": [
+          "services",
+          "veterinary"
+        ],
+        "poi_category_ids": [
+          "services",
+          "veterinarian"
+        ],
+        "external_ids": {
+          "dataplor": "5b414fe4-9195-484b-905e-4afc4fe7e31d"
+        },
+        "metadata": {
+          "phone": "+919833003303"
+        },
+        "distance": 795
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          72.88116594,
+          19.08727903
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "name": "Sai Vet Clinic",
+        "mapbox_id": "dXJuOm1ieHBvaTo4ZDRkM2Q1ZC00NWZjLTRlYzYtYjdiNi1jMGJmYzUxNTk0NWY",
+        "feature_type": "poi",
+        "address": "Mumbai",
+        "full_address": "Mumbai, 400072, India",
+        "place_formatted": "400072, India",
+        "context": {
+          "country": {
+            "name": "India",
+            "country_code": "IN",
+            "country_code_alpha_3": "IND"
+          },
+          "postcode": {
+            "id": "dXJuOm1ieHBsYzpBcjZPYXc",
+            "name": "400072"
+          },
+          "place": {
+            "id": "dXJuOm1ieHBsYzpBY0NvYXc",
+            "name": "Mumbai"
+          },
+          "neighborhood": {
+            "id": "dXJuOm1ieHBsYzpDTVFzYXc",
+            "name": "Sandesh Nagar"
+          }
+        },
+        "coordinates": {
+          "latitude": 19.08727903,
+          "longitude": 72.88116594,
+          "routable_points": [
+            {
+              "name": "POI",
+              "latitude": 19.087274030487873,
+              "longitude": 72.88121674899537
+            }
+          ]
+        },
+        "language": "",
+        "maki": "marker",
+        "poi_category": [
+          "services",
+          "veterinary"
+        ],
+        "poi_category_ids": [
+          "services",
+          "veterinarian"
+        ],
+        "external_ids": {
+          "dataplor": "0add52e5-3c17-43a4-8642-86c4856f985f"
+        },
+        "metadata": {
+          "phone": "+919324624543",
+          "website": "https://sai-vet-clinic-dr-chinmay-on-call-vet.business.site/",
+          "open_hours": {
+            "periods": [
+              {
+                "open": {
+                  "day": 0,
+                  "time": "1030"
+                },
+                "close": {
+                  "day": 0,
+                  "time": "1230"
+                }
+              },
+              {
+                "open": {
+                  "day": 1,
+                  "time": "1030"
+                },
+                "close": {
+                  "day": 1,
+                  "time": "1945"
+                }
+              },
+              {
+                "open": {
+                  "day": 2,
+                  "time": "1030"
+                },
+                "close": {
+                  "day": 2,
+                  "time": "1945"
+                }
+              },
+              {
+                "open": {
+                  "day": 3,
+                  "time": "1030"
+                },
+                "close": {
+                  "day": 3,
+                  "time": "1945"
+                }
+              },
+              {
+                "open": {
+                  "day": 4,
+                  "time": "1030"
+                },
+                "close": {
+                  "day": 4,
+                  "time": "1945"
+                }
+              },
+              {
+                "open": {
+                  "day": 5,
+                  "time": "1030"
+                },
+                "close": {
+                  "day": 5,
+                  "time": "1945"
+                }
+              },
+              {
+                "open": {
+                  "day": 6,
+                  "time": "1030"
+                },
+                "close": {
+                  "day": 6,
+                  "time": "1945"
+                }
+              }
+            ]
+          }
+        },
+        "distance": 1306
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          72.87486206,
+          19.06290016
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "name": "Dr. Shobha A. Dhavle",
+        "mapbox_id": "dXJuOm1ieHBvaTo1ZWRmOTA4My01MmEwLTQzYjctYWM2MS04OWJhOTRiY2IzOWY",
+        "feature_type": "poi",
+        "address": "Mumbai",
+        "full_address": "Mumbai, 400070, India",
+        "place_formatted": "400070, India",
+        "context": {
+          "country": {
+            "name": "India",
+            "country_code": "IN",
+            "country_code_alpha_3": "IND"
+          },
+          "postcode": {
+            "id": "dXJuOm1ieHBsYzpBcjVPYXc",
+            "name": "400070"
+          },
+          "place": {
+            "id": "dXJuOm1ieHBsYzpBY0NvYXc",
+            "name": "Mumbai"
+          },
+          "neighborhood": {
+            "id": "dXJuOm1ieHBsYzpBak5zYXc",
+            "name": "Chhadva Nagar"
+          }
+        },
+        "coordinates": {
+          "latitude": 19.06290016,
+          "longitude": 72.87486206,
+          "routable_points": [
+            {
+              "name": "POI",
+              "latitude": 19.062877904432423,
+              "longitude": 72.87491207882611
+            }
+          ]
+        },
+        "language": "",
+        "maki": "marker",
+        "poi_category": [
+          "services",
+          "veterinary"
+        ],
+        "poi_category_ids": [
+          "services",
+          "veterinarian"
+        ],
+        "external_ids": {
+          "dataplor": "f8bfdcd2-cee9-48a8-995b-13b5112f1507"
+        },
+        "metadata": {},
+        "distance": 1487
+      }
+    }
+  ],
+  "attribution": "© 2026 Mapbox and its suppliers. All rights reserved. Use of this data is subject to the Mapbox Terms of Service. (https://www.mapbox.com/about/maps/)",
+  "response_id": "dvOsuPxXi66rMTotPSVuv-BpZJ9xTHgOSiD6hHRJi7Vq6izPpvdRRkd9c_cu5igJwicuHgzhTCOcuVUrJTnWSaJ0kW72n3l7nHY="
+}

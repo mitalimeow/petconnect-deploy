@@ -17,13 +17,17 @@ const TAG_COLORS = {
   'Admin': '#d9d9d9',
 };
 
-const TagBadge = ({ tag }) => {
+const TagBadge = ({ tag, size = 'default' }) => {
   const tagName = typeof tag === 'object' ? tag.name : tag;
   const tagColor = TAG_COLORS[tagName] || '#d9d9d9'; // strictly override
   
+  const sizeClasses = size === 'sm' 
+    ? "px-1.5 py-[1px] rounded-[6px] text-[10px]" 
+    : "px-3 py-1 rounded-[10px] text-sm";
+
   return (
     <span 
-      className="px-3 py-1 rounded-[10px] text-sm font-semibold text-gray-800 shadow-sm border border-black/80 transition-transform hover:scale-105 inline-block"
+      className={`${sizeClasses} font-semibold text-gray-800 shadow-sm border border-black/80 transition-transform hover:scale-105 inline-block shrink-0`}
       style={{ backgroundColor: tagColor }}
     >
       {tagName}

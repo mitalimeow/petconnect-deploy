@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Lilita+One&family=Playwrite+US+Trad:wght@100..400&family=Poppins:wght@600&family=Raleway:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Dekko&family=Gloria+Hallelujah&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Lilita+One&family=Playwrite+US+Trad:wght@100..400&family=Poppins:wght@600&family=Raleway:wght@400;500;700;800&family=Rowdies:wght@300;400;700&family=Schoolbell&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -24,5 +24,21 @@
 @layer utilities {
   .clip-circle {
     clip-path: circle(50% at 50% 50%);
+  }
+
+  /* Skeleton Shimmer Effect */
+  @keyframes skeleton-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .skeleton-item {
+    background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite linear;
   }
 }

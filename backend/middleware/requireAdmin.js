@@ -3,15 +3,17 @@ const User = require('../models/User');
 module.exports = async function (req, res, next) {
   try {
     // If auth middleware stored tags in token and they include Admin
-    if (req.user && req.user.tags && req.user.tags.includes('Admin')) {
-      return next();
+    if (req.user && req.user.tags) {
+      const hasAdminTag = req.user.tags.some(t => t.name === 'Admin') || req.user.tags.includes('Admin');
+      if (hasAdminTag) return next();
     }
 
     // Otherwise strictly verify from DB
     if (req.user && req.user.id) {
       const user = await User.findById(req.user.id);
-      if (user && user.tags && user.tags.includes('Admin')) {
-        return next();
+      if (user && user.tags) {
+        const hasAdminTag = user.tags.some(t => t.name === 'Admin') || user.tags.includes('Admin');
+        if (hasAdminTag) return next();
       }
     }
 

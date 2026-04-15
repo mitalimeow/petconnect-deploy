@@ -90,10 +90,8 @@ const About = () => {
                 Contact
               </h2>
             </div>
-            <div className="flex flex-col md:flex-row justify-center gap-6 mt-8 font-medium">
-              <a href="https://mail.google.com/mail/?view=cm&fs=1&to=mitali7paul@gmail.com" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white text-pastel-pink rounded-2xl shadow-soft hover:scale-105 transition-transform" style={{ fontFamily: '"Comic Sans MS", "Comic Sans", cursive' }}>mitali7paul@gmail.com</a>
-              <a href="https://mail.google.com/mail/?view=cm&fs=1&to=support@petconnect.com" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white text-pastel-blue rounded-2xl shadow-soft hover:scale-105 transition-transform" style={{ fontFamily: '"Comic Sans MS", "Comic Sans", cursive' }}>support@petconnect.com</a>
-              <a href="https://mail.google.com/mail/?view=cm&fs=1&to=outreach@petconnect.com" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white text-pastel-purple rounded-2xl shadow-soft hover:scale-105 transition-transform" style={{ fontFamily: '"Comic Sans MS", "Comic Sans", cursive' }}>outreach@petconnect.com</a>
+            <div className="flex justify-center mt-8 font-medium">
+              <a href="https://mail.google.com/mail/?view=cm&fs=1&to=mitalipaullol268@gmail.com" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white text-pastel-pink rounded-2xl shadow-soft hover:scale-105 transition-transform" style={{ fontFamily: '"Comic Sans MS", "Comic Sans", cursive' }}>mitalipaullol268@gmail.com</a>
             </div>
           </section>
         </div>
