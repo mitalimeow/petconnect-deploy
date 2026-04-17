@@ -3,7 +3,7 @@ import { Search, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TagBadge from '../profile/TagBadge';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
 
 const UserSearch = () => {
   const [query, setQuery] = useState('');

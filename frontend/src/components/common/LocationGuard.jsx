@@ -19,7 +19,7 @@ const LocationGuard = ({ children, title = "Location Access Required", message =
           
           // Securely sync the location to backend for background geo-alerts
           if (user) {
-            fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/profile/location`, {
+            fetch(`${import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`}/api/profile/location`, {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json'

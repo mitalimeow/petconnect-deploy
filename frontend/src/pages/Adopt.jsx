@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, X, Loader2, Cat, Phone, AlertCircle, CheckCircle } from 'lucide-react';
 import FiltersPanel from '../components/adopt/FiltersPanel';

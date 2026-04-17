@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
 
     const syncWithMongo = async () => {
       try {
-        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
         const res = await fetch(`${API_BASE}/api/user/me`, {
            credentials: 'include'
         });
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     // Under Cookie architecture, Google Auth response just sets the cookie.
     // We fetch /api/user/me to establish state securely!
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
       const res = await fetch(`${API_BASE}/api/user/me`, {
          credentials: 'include'
       });
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
       await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
       setUser(null);
       localStorage.clear(); // Total eradication of any lingering legacy bits

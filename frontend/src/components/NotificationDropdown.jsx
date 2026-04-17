@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Check, Trash2, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
 
 const NotificationDropdown = ({ onClose }) => {
   const [items, setItems] = useState([]);

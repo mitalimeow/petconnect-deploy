@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
 import { Check, X, ChevronDown, ChevronUp, FileText, ExternalLink, Download } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
 
 const ApplicationCard = ({ app, onApprove, onDeny }) => {
   const [expanded, setExpanded] = useState(false);

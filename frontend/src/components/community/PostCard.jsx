@@ -21,7 +21,7 @@ export default function PostCard({ post }) {
     }
 
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
       await fetch(`${API_BASE}/api/posts/${post._id}/like`, {
         method: 'POST',
         credentials: 'include'

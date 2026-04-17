@@ -22,7 +22,7 @@ export default function FriendsDropdown() {
   const fetchFriends = async () => {
     setIsLoading(true);
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
       const res = await fetch(`${API_BASE}/api/friends/list`, {
         credentials: 'include'
       });

@@ -52,7 +52,7 @@ const LostFound = () => {
 
     const fetchLocalPets = async () => {
       try {
-        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
         const res = await fetch(`${API_BASE}/api/lost?lat=${position.lat}&lng=${position.lng}`);
         if (res.ok) {
           const data = await res.json();
@@ -107,7 +107,7 @@ const LostFound = () => {
     if (location.state?.openPetId) {
        const fetchTargetPet = async () => {
           try {
-             const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+             const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
              const res = await fetch(`${API_BASE}/api/lost/${location.state.openPetId}`);
              if (res.ok) {
                 const p = await res.json();
@@ -145,7 +145,7 @@ const LostFound = () => {
           setLoadingLoc(false);
 
           // Background sync to backend for distance calculations
-          const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+          const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
           fetch(`${API_BASE}/api/profile/location`, {
              method: 'PATCH',
              headers: { 'Content-Type': 'application/json' },
@@ -241,7 +241,7 @@ const LostFound = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
       const payload = {
         petName,
         animalType,

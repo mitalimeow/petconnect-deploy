@@ -77,7 +77,7 @@ const Helpline = () => {
           fetchInitialClinics(lat, lng);
 
           // Background sync to backend for distance calculations
-          const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+          const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
           fetch(`${API_BASE}/api/profile/location`, {
              method: 'PATCH',
              headers: { 'Content-Type': 'application/json' },

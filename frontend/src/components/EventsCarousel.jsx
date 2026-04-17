@@ -6,7 +6,7 @@ const fallbacks = [
   'bg-pastel-pink', 'bg-pastel-blue', 'bg-pastel-yellow', 'bg-pastel-green'
 ];
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
 
 const EventsCarousel = ({ triggerFetch }) => {
   const [currentIndex, setCurrentIndex] = useState(0);

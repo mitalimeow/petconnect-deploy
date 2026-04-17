@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000`;
 import React, { useState } from 'react';
 import { X, UploadCloud, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import ElasticSlider from './ElasticSlider';
